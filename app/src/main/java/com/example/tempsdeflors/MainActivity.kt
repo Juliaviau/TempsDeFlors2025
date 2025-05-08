@@ -43,6 +43,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.io.FileInputStream
 
 
 class MainActivity : ComponentActivity() {
@@ -136,6 +137,7 @@ fun Altre() {
 }
 
 fun carregarPuntsDesDeJSON(context: Context): List<Punts> {
+   // val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
     val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
     val gson = Gson()
     val tipus = object : TypeToken<List<Punts>>() {}.type

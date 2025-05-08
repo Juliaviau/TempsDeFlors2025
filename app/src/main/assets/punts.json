@@ -1,38 +1,47 @@
 [
-
   {
     "lat": 41.97758679101597,
     "lon": 2.807102518632676,
     "titol": "Punt 98. Centre Cívic Can Ninetes",
     "descripcio": "Entre dos mons – Una reflexió floral sobre el canvi climàtic",
-    "ruta": "ruta2"
+    "ruta": "ruta2",
+    "visitat":"no" ,
+    "foto": "no"
   },
   {
     "lat": 41.97525933962588,
     "lon": 2.802212491564444,
     "titol": "Punt 99. Ateneu Eugenienc",
     "descripcio": "Som Llavors, tornar a l’origen",
-    "ruta": "ruta2"
+    "ruta": "ruta2",
+    "visitat":"no" ,
+    "foto": "no"
   },
   {
     "lat": 41.969729432696376,
     "lon": 2.8026365615032587,
     "titol": "Punt 100. Parc de Jordi Vilamitjana",
     "descripcio": "Celebrant la diversitat que ens uneix",
-    "ruta": "ruta2"
+    "ruta": "ruta2",
+    "visitat":"no" ,
+    "foto": "no"
   },
   {
     "lat": 41.971188297806506,
     "lon": 2.8040833338720037,
     "titol": "Punt 101. IES Santa Eugènia",
     "descripcio": "Qui va dir que no hi hauria flors?",
-    "ruta": "ruta2"
+    "ruta": "ruta2",
+    "visitat":"no" ,
+    "foto": "no"
   },
   {
     "lat": 41.97531049177361,
     "lon": 2.811249616981023,
     "titol": "Punt 102. Plaça de l'Assumpció",
     "descripcio": "Mercat de barri",
-    "ruta": "ruta2"
+    "ruta": "ruta2",
+    "visitat":"no" ,
+    "foto": "no"
   }
 ]

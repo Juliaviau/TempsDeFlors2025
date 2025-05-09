@@ -9,6 +9,6 @@ data class Punts(
     val ruta: String, //ruta1,ruta2,ruta3,accessible
     val numero: String,
     val data: String,
-    val visitat: String,
+    var visitat: String,
     val foto: String
 )

@@ -5,70 +5,20 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.PendingIntentCompat.getActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.infowindow.InfoWindow
 
-
-/*
-class InfoPuntMarker(mapView: MapView?) : MarkerInfoWindow(R.layout.splash_screen, mapView) {
-    override fun onOpen(item: Any) {
-        val m: Marker = item as Marker
-
-
-        val title = mView.findViewById<View>(R.id.title) as TextView
-        title.setText(m.getTitle())
-
-
-        val snippet = mView
-            .findViewById<View>(R.id.description) as TextView
-        snippet.setText(m.getSnippet())
-    }
-}*/
-
-/*
-class InfoPuntMarker(layoutResId: Int, mapView: MapView?) :
-    InfoWindow(layoutResId, mapView) {
-    override fun onClose() {
-    }
-
-    override fun onOpen(arg0: Any) {
-        val marker = arg0 as? Marker ?: return
-
-     //   val layout = mView.findViewById<View>(R.id.layout) as LinearLayout
-        //val btnMoreInfo = mView.findViewById<View>(R.id.bubble_moreinfo) as Button
-        val txtTitle = mView.findViewById<View>(R.id.title) as TextView
-        val txtDescription = mView.findViewById<View>(R.id.description) as TextView
-        val txtSubdescription = mView.findViewById<View>(R.id.subdescription) as TextView
-
-        txtTitle.text = marker.title
-        txtDescription.text = marker.subDescription
-        txtSubdescription.text = marker.snippet
-        /*layout.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                // Override Marker's onClick behaviour here
-            }
-        })*/
-    }
-}*/
-/*
-class InfoPuntMarker(mapView: MapView) : MarkerInfoWindow(R.layout.info_punt_marker, mapView) {
-    override fun onOpen(item: Any?) {
-        super.onOpen(item)
-        val marker = item as? Marker ?: return
-
-        val titleView = mView.findViewById<TextView>(R.id.title)
-        val descView = mView.findViewById<TextView>(R.id.description)
-
-        titleView.text = marker.title
-        descView.text = marker.snippet
-    }
-}*/
-
 class InfoPuntMarker(private val mapView: MapView) :
     InfoWindow(R.layout.info_punt_marker, mapView) {
+    val context = mapView.context
+
+
+    val puntsRepo = PuntsRepository(context)
 
     override fun onClose() {
         // Do something
@@ -116,6 +66,17 @@ class InfoPuntMarker(private val mapView: MapView) :
         }
         visitatButton.setOnClickListener {
             // Handle visitat button click
+            if (punt.visitat.equals("no")) {
+               // punt.visitat = "si"
+                punt.visitat = "si"
+                puntsRepo.marcarComVisitat(punt.numero)
+
+            } else {
+                punt.visitat = "no"
+                //punt.data = ""
+                puntsRepo.marcarComNoVisitat(punt.numero)
+            }
+            mapView.invalidate()
             close()
         }
         mView.setOnClickListener{

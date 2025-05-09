@@ -85,6 +85,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import java.io.File
 
 
 class MainActivity : ComponentActivity() {
@@ -92,6 +93,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
+
+
 
         setContent {
             TempsDeFlorsTheme {
@@ -110,8 +113,12 @@ fun PantallaMapa() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
+
     val context = LocalContext.current
-    val punts = remember { carregarPuntsDesDeJSON(context) }
+    val puntsRepo = PuntsRepository(context)
+    puntsRepo.inicialitzarSiCal()
+
+    val punts = remember { puntsRepo.llegirPunts() }
     val grouped = punts.groupBy { it.ruta }
     val listState = rememberLazyListState()
 
@@ -395,20 +402,48 @@ fun Altre() {
         Text("App de Temps de Flors!")
     }
 }
+/*
+fun copyJsonIfNeeded(context: Context) {
+    val file = File(context.filesDir, "punts.json")
+    if (!file.exists()) {
+        val asset = context.assets.open("punts.json")
+        file.outputStream().use { asset.copyTo(it) }
+    }
+}
+
+fun marcarPuntComVisitat(context: Context, numero: String) {
+    val punts = carregarPuntsDesDeJSON(context)
+
+    val punt = punts.find { it.numero == numero }
+    punt?.let {
+        it.visitat = "si"
+        guardarPunts(context, punts)
+    }
+}
+
+fun guardarPunts(context: Context, punts: List<Punts>) {
+    val file = File(context.filesDir, "punts.json")
+    val json = Gson().toJson(punts)
+    file.writeText(json)
+}
+
 
 fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
-    val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
+   // val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
+    val file = File(context.filesDir, "punts.json")
+    val json = file.readText()
     val gson = Gson()
-    val tipus = object : TypeToken<List<Punts>>() {}.type
+    val tipus = object : TypeToken<MutableList<Punts>>() {}.type
     return gson.fromJson(json, tipus)
-}
+}*/
 
 
 @Composable
 fun OsmMapView() {
     val context = LocalContext.current
+    val puntsRepo = PuntsRepository(context)
 
-    val punts = remember { carregarPuntsDesDeJSON(context) }
+    val punts = remember { puntsRepo.llegirPunts() }
 
     val mapView = MapView(context)
     val mapController = mapView.controller

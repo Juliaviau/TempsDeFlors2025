@@ -172,6 +172,11 @@ fun OsmMapView() {
             var color = ContextCompat.getColor(context, R.color.ruta1)
 
             //rutes
+
+            val ruta2Coords = listOf(
+
+            )
+
             val ruta2Coords = listOf(
                 GeoPoint(41.977659707636306, 2.8074963985445667),
                 GeoPoint(41.97723785431085, 2.8064302642503107),

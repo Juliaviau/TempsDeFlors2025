@@ -1,9 +1,12 @@
 package com.example.tempsdeflors
 
+import com.example.tempsdeflors.R
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -27,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -44,10 +46,10 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.infowindow.InfoWindow
+import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import java.io.FileInputStream
-import android.graphics.Color
 
 
 class MainActivity : ComponentActivity() {
@@ -171,6 +173,7 @@ fun OsmMapView() {
                 marker.position = GeoPoint(punt.lat, punt.lon)
                 marker.title = punt.titol
                 marker.subDescription = punt.descripcio
+                marker.snippet = punt.snippet
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 marker.icon = when (punt.ruta) {
                     "ruta1" -> context.getDrawable(R.drawable.one_circle_svgrepo_com)
@@ -179,6 +182,10 @@ fun OsmMapView() {
                     "accessible" -> context.getDrawable(R.drawable.accessibility_svgrepo_com)
                     else -> null
                 }
+
+                val infoWindow = InfoPuntMarker(mapView)
+                marker.infoWindow = infoWindow
+
                 mapView.overlays.add(marker)
             }
 
@@ -290,21 +297,21 @@ fun OsmMapView() {
 
             val polyline2 = Polyline()
             polyline2.setPoints(ruta2Coords)
-            polyline2.setColor(Color.rgb(125, 0, 125)) // Color vermell suau
+            polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
             polyline2.getPaint().setStrokeCap(Paint.Cap.ROUND);
             polyline2.width = 8.0f // gruix de la línia
             mapView.overlays.add(polyline2)
 
             val polyline3 = Polyline()
             polyline3.setPoints(ruta3Coords)
-            polyline3.setColor(Color.rgb(0, 73, 136)) // Color vermell suau
+            polyline3.setColor(Color.rgb(0, 73, 136)) // Color blau
             polyline3.getPaint().setStrokeCap(Paint.Cap.ROUND);
             polyline3.width = 8.0f // gruix de la línia
             mapView.overlays.add(polyline3)
 
             val polyline1 = Polyline()
             polyline1.setPoints(ruta2Coords)
-            polyline1.setColor(Color.rgb(0, 168, 132)) // Color vermell suau
+            polyline1.setColor(Color.rgb(0, 168, 132)) // Color verd
             polyline1.getPaint().setStrokeCap(Paint.Cap.ROUND);
             polyline1.width = 8.0f // gruix de la línia
             mapView.overlays.add(polyline1)

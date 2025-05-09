@@ -11,5 +11,9 @@
 
 
     <color name="fonssplash">#C2A0CE</color>
+    <color name="ruta1">#00a80d</color>
+    <color name="ruta2">#7d007d</color>
+    <color name="ruta3">#004988</color>
+    <color name="accessible"></color>
 
 </resources>

@@ -14,7 +14,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:textAlignment="center"
+            android:text="No visitat"
+            android:id="@+id/visitatono"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
             android:id="@+id/ruta"
+            android:layout_below="@id/visitatono"
             android:textStyle="bold"
             android:textSize="18sp"
             android:text="Ruta 2"/>
@@ -57,14 +68,14 @@
             android:layout_below="@id/snippet"
             android:layout_marginTop="8dp"
             android:orientation="horizontal"
-            android:gravity="end">
+            android:gravity="center">
 
             <Button
                 android:id="@+id/visitat_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/holo_blue_light"
-                android:text="Visitat"
+                android:text="Marcar com a visitat"
                 android:textColor="@android:color/white" />
         </LinearLayout>
 

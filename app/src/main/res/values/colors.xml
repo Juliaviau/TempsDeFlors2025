@@ -9,11 +9,16 @@
     <color name="white">#FFFFFFFF</color>
 
 
-
+    <!-- https://www.color-hex.com/color/004988 -->
     <color name="fonssplash">#C2A0CE</color>
     <color name="ruta1">#00a80d</color>
     <color name="ruta2">#7d007d</color>
     <color name="ruta3">#004988</color>
     <color name="accessible"></color>
+
+    <color name="ruta2clar">#d8b6f3</color>
+    <color name="ruta1clar">#b2e4b6</color>
+    <color name="ruta3clar">#b2c8db</color>
+    <color name="accessibleclar"></color>
 
 </resources>

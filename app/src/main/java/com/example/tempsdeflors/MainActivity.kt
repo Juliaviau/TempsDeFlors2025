@@ -171,49 +171,6 @@ fun OsmMapView() {
 
             var color = ContextCompat.getColor(context, R.color.ruta1)
 
-            punts.forEach { punt ->
-                val marker = Marker(mapView)
-                marker.position = GeoPoint(punt.lat, punt.lon)
-                marker.title = punt.titol
-                marker.subDescription = punt.descripcio
-                marker.snippet = punt.snippet
-                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                marker.relatedObject = punt
-                val infoWindow = InfoPuntMarker(mapView)
-                marker.infoWindow = infoWindow
-                /*marker.icon = when (punt.ruta) {
-                    "ruta1" -> context.getDrawable(R.drawable.one_circle_svgrepo_com)
-                    "ruta2" -> context.getDrawable(R.drawable.two_circle_svgrepo_com)
-                    "ruta3" -> context.getDrawable(R.drawable.three_circle_svgrepo_com)
-                    "accessible" -> context.getDrawable(R.drawable.accessibility_svgrepo_com)
-                    else -> null
-                }*/
-                when (punt.ruta) {
-                    "1" -> {
-                        color = ContextCompat.getColor(mapView.context, R.color.ruta1)
-
-                    }
-                    "2" -> {
-                        color = ContextCompat.getColor(mapView.context, R.color.ruta2)
-                    }
-                    "3" -> {
-                        color = ContextCompat.getColor(mapView.context, R.color.ruta3)
-                    }
-                    "ACCESSIBLE" -> {
-                        color = ContextCompat.getColor(mapView.context, R.color.accessible)
-                    }
-                }
-                marker.icon = createNumberedMarkerDrawable(context, punt.numero.toInt(), color)
-                mapView.overlays.add(marker)
-            }
-
-            // Mostrar localització de l'usuari
-            val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView).apply {
-                enableMyLocation()
-                enableFollowLocation()
-            }
-            mapView.overlays.add(locationOverlay)
-
             //rutes
             val ruta2Coords = listOf(
                 GeoPoint(41.977659707636306, 2.8074963985445667),
@@ -327,13 +284,52 @@ fun OsmMapView() {
             polyline3.width = 8.0f // gruix de la línia
             mapView.overlays.add(polyline3)
 
-            val polyline1 = Polyline()
-            polyline1.setPoints(ruta2Coords)
+            /*val polyline1 = Polyline()
+            polyline1.setPoints(ruta1Coords)
             polyline1.setColor(Color.rgb(0, 168, 132)) // Color verd
             polyline1.getPaint().setStrokeCap(Paint.Cap.ROUND);
             polyline1.width = 8.0f // gruix de la línia
-            mapView.overlays.add(polyline1)
+            mapView.overlays.add(polyline1)*/
 
+            punts.forEach { punt ->
+                val marker = Marker(mapView)
+                marker.position = GeoPoint(punt.lat, punt.lon)
+                marker.title = punt.titol
+                marker.subDescription = punt.descripcio
+                marker.snippet = punt.snippet
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                marker.relatedObject = punt
+                val infoWindow = InfoPuntMarker(mapView)
+                marker.infoWindow = infoWindow
+
+                when (punt.ruta) {
+                    "1" -> {
+                        color = if (punt.visitat.equals("no"))
+                        ContextCompat.getColor(mapView.context, R.color.ruta1) else ContextCompat.getColor(mapView.context, R.color.ruta1clar)
+                    }
+                    "2" -> {
+                        color = if (punt.visitat.equals("no"))
+                            ContextCompat.getColor(mapView.context, R.color.ruta2) else ContextCompat.getColor(mapView.context, R.color.ruta2clar)
+                    }
+                    "3" -> {
+                        color = if (punt.visitat.equals("no"))
+                            ContextCompat.getColor(mapView.context, R.color.ruta3) else ContextCompat.getColor(mapView.context, R.color.ruta3clar)
+                    }
+                    "ACCESSIBLE" -> {
+                        color = if (punt.visitat.equals("no"))
+                            ContextCompat.getColor(mapView.context, R.color.accessible) else ContextCompat.getColor(mapView.context, R.color.accessibleclar)
+                    }
+                }
+                marker.icon = createNumberedMarkerDrawable(context, punt.numero.toInt(), color)
+                mapView.overlays.add(marker)
+            }
+
+            // Mostrar localització de l'usuari
+            val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView).apply {
+                enableMyLocation()
+                enableFollowLocation()
+            }
+            mapView.overlays.add(locationOverlay)
 
             mapView//aixo sempre al final
         },

@@ -51,7 +51,41 @@ import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import android.graphics.Path
+import android.preference.PreferenceActivity
+import androidx.benchmark.perfetto.ExperimentalPerfettoTraceProcessorApi
+import androidx.benchmark.perfetto.Row
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.compose.ui.graphics.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,12 +101,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalPerfettoTraceProcessorApi::class
+)
 @Composable
 fun PantallaMapa() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val punts = remember { carregarPuntsDesDeJSON(context) }
+    val grouped = punts.groupBy { it.ruta }
+    val listState = rememberLazyListState()
 
     //Menu de l'esquerra
     ModalNavigationDrawer (
@@ -80,7 +121,145 @@ fun PantallaMapa() {
         drawerContent = {
             //Opcions del menú
             ModalDrawerSheet {
-                Text("Menú", modifier = Modifier.padding(16.dp))
+                Text("Espais",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(16.dp).
+                    align(Alignment.CenterHorizontally)
+                )
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    grouped.forEach { (ruta, punts) ->
+                        stickyHeader {
+                            Text(
+                                text = "Ruta $ruta",
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .background(
+                                        when (ruta) {
+                                            "1" -> {androidx.compose.ui.graphics.Color( 0xFF00a80d)}
+                                            "2" -> {androidx.compose.ui.graphics.Color( 0xFF7d007d)}
+                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                            else -> {androidx.compose.ui.graphics.Color.Gray }
+                                        },
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp)
+                                    .padding(horizontal = 6.dp)
+                                    .wrapContentSize(Alignment.Center)
+                            )
+                        }
+
+                        itemsIndexed(punts) { index, punt ->
+                            val nextPunt = punts.getOrNull(index + 1)
+                            TimelineItem(
+                                punt = punt,
+                                nextPunt = nextPunt,
+                                isFirst = index == 0,
+                                isLast = index == punts.lastIndex
+                            )
+                        }
+
+                    }
+                }
+
+                /*LazyColumn (state = listState, modifier = Modifier.fillMaxSize().padding(start = 24.dp)){
+                    grouped.forEach { (ruta, punts) ->
+                        stickyHeader {
+                            Text(
+                                "Ruta $ruta",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(10.dp)
+                                    .fillMaxWidth()
+                                    .padding(6.dp)
+                                    .align(Alignment.CenterHorizontally)
+                                    .background(
+                                        when (ruta) {
+                                            "1" -> {androidx.compose.ui.graphics.Color( 0xFF00a80d)}
+                                            "2" -> {androidx.compose.ui.graphics.Color( 0xFF7d007d)}
+                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                            else -> {androidx.compose.ui.graphics.Color.Gray }
+                                        }
+                                    )
+                            )
+                        }
+
+                        itemsIndexed(punts) { index, punt ->
+                            Box {
+                                // Línia vertical contínua
+                                Box(
+                                    modifier = Modifier
+                                        .width(2.dp)
+                                        .fillMaxHeight()
+                                        .background(androidx.compose.ui.graphics.Color.Black)
+                                        .align(Alignment.TopStart)
+                                        .offset(x = 11.dp) // per centrar-la darrere dels cercles
+                                )
+
+                                // Contingut del punt
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp)
+                                ) {
+                                    // Cercle indicador
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.Top)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(12.dp)
+                                                .align(Alignment.Center)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (punt.visitat.equals("si")) androidx.compose.ui.graphics.Color.Green
+                                                    else androidx.compose.ui.graphics.Color.Red
+                                                )
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(end = 16.dp),
+                                        elevation = CardDefaults.cardElevation(4.dp)
+                                    ) {
+                                        Column(modifier = Modifier.padding(12.dp)) {
+                                            Text(
+                                                text = punt.titol,
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = if (punt.visitat.equals("si")) "Visitat" else "No visitat",
+                                                fontSize = 14.sp,
+                                                color = if (punt.visitat.equals("si")) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }*/
+
+
                 NavigationDrawerItem(
                     label = { Text("Mapa") },
                     selected = false,
@@ -104,7 +283,7 @@ fun PantallaMapa() {
             //barra lila de sobre del mapa, que diu temps de flors i l'icona del menu
             topBar = {
                 TopAppBar(
-                    title = { Text("Temps de Flors") },
+                    title = { Text("Temps de Flors 2025", fontSize = 24.sp) },
                     //icona del menu
                     navigationIcon = {
                         IconButton(onClick = {
@@ -136,6 +315,80 @@ fun PantallaMapa() {
     }
 }
 
+
+@Composable
+fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean) {
+    val circleColor = if (punt.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
+
+    // Degradat entre el color del punt actual i el següent
+    val lineGradient = Brush.verticalGradient(
+        colors = listOf(
+            circleColor,
+            if (nextPunt?.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336)
+        )
+    )
+
+    Row(modifier = Modifier.fillMaxWidth().padding(top = if (isFirst)  16.dp else 0.dp)) {
+        // Timeline
+        Column(
+            modifier = Modifier
+                .width(40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (!isFirst) {
+                Box(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .height(16.dp)
+                        .background(circleColor)
+                )
+            }
+
+            // Punt indicador (cercle)
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(circleColor)
+            )
+
+            if (!isLast) {
+                Box(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .height(64.dp)
+                        .background(brush = lineGradient)
+                )
+            }
+        }
+
+        // Targeta de contingut
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = punt.titol,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = if (punt.visitat == "si") "Visitat" else "No visitat",
+                    fontSize = 16.sp,
+                    color = circleColor
+                )
+            }
+        }
+    }
+}
+
+
+
+
 @Composable
 fun Altre() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -143,7 +396,7 @@ fun Altre() {
     }
 }
 
-fun carregarPuntsDesDeJSON(context: Context): List<Punts> {
+fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
     val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
     val gson = Gson()
     val tipus = object : TypeToken<List<Punts>>() {}.type
@@ -160,7 +413,6 @@ fun OsmMapView() {
     val mapView = MapView(context)
     val mapController = mapView.controller
 
-
     //Una vista per a veure el mapa
     AndroidView(
         factory = { context ->
@@ -172,10 +424,6 @@ fun OsmMapView() {
             var color = ContextCompat.getColor(context, R.color.ruta1)
 
             //rutes
-
-            val ruta2Coords = listOf(
-
-            )
 
             val ruta2Coords = listOf(
                 GeoPoint(41.977659707636306, 2.8074963985445667),

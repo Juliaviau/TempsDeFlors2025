@@ -83,11 +83,13 @@ class InfoPuntMarker(private val mapView: MapView) :
         val subDescView = mView.findViewById<TextView>(R.id.snippet)
         val visitatButton = mView.findViewById<Button>(R.id.visitat_button)
         val ruta = mView.findViewById<TextView>(R.id.ruta)
+        val visita = mView.findViewById<TextView>(R.id.visitatono)
 
         titleView.text = marker.title
         descView.text = marker.subDescription
         subDescView.text = marker.snippet
-
+        visita.text = if (punt.visitat.equals("no")) "No visitat" else "Visitat a " + punt.data
+        visitatButton.text = if (punt.visitat.equals("no")) "Marcar com a visitat" else "Eliminar de visitats"
         ruta.text = "RUTA " + punt.ruta
 
         when (punt.ruta) {

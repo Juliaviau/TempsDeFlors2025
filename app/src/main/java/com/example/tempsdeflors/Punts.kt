@@ -7,6 +7,8 @@ data class Punts(
     val descripcio: String,
     val snippet: String,
     val ruta: String, //ruta1,ruta2,ruta3,accessible
+    val numero: String,
+    val data: String,
     val visitat: String,
     val foto: String
 )

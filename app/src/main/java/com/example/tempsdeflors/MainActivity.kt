@@ -1,8 +1,12 @@
 package com.example.tempsdeflors
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.preference.PreferenceManager
 import androidx.activity.ComponentActivity
@@ -46,7 +50,8 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-
+import android.graphics.Path
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,6 +169,8 @@ fun OsmMapView() {
             mapController.setZoom(15.0)//zoom aplicat a l'inici
             mapController.setCenter(GeoPoint(41.983, 2.824)) //coordenades de l'inici
 
+            var color = ContextCompat.getColor(context, R.color.ruta1)
+
             punts.forEach { punt ->
                 val marker = Marker(mapView)
                 marker.position = GeoPoint(punt.lat, punt.lon)
@@ -171,17 +178,32 @@ fun OsmMapView() {
                 marker.subDescription = punt.descripcio
                 marker.snippet = punt.snippet
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                marker.icon = when (punt.ruta) {
+                marker.relatedObject = punt
+                val infoWindow = InfoPuntMarker(mapView)
+                marker.infoWindow = infoWindow
+                /*marker.icon = when (punt.ruta) {
                     "ruta1" -> context.getDrawable(R.drawable.one_circle_svgrepo_com)
                     "ruta2" -> context.getDrawable(R.drawable.two_circle_svgrepo_com)
                     "ruta3" -> context.getDrawable(R.drawable.three_circle_svgrepo_com)
                     "accessible" -> context.getDrawable(R.drawable.accessibility_svgrepo_com)
                     else -> null
-                }
-                marker.relatedObject = punt
-                val infoWindow = InfoPuntMarker(mapView)
-                marker.infoWindow = infoWindow
+                }*/
+                when (punt.ruta) {
+                    "1" -> {
+                        color = ContextCompat.getColor(mapView.context, R.color.ruta1)
 
+                    }
+                    "2" -> {
+                        color = ContextCompat.getColor(mapView.context, R.color.ruta2)
+                    }
+                    "3" -> {
+                        color = ContextCompat.getColor(mapView.context, R.color.ruta3)
+                    }
+                    "ACCESSIBLE" -> {
+                        color = ContextCompat.getColor(mapView.context, R.color.accessible)
+                    }
+                }
+                marker.icon = createNumberedMarkerDrawable(context, punt.numero.toInt(), color)
                 mapView.overlays.add(marker)
             }
 
@@ -317,4 +339,52 @@ fun OsmMapView() {
         },
         modifier = Modifier.fillMaxSize()
     )
+}
+
+fun createNumberedMarkerDrawable(context: Context, number: Int, colorp: Int): Drawable {
+    val width = 100
+    val height = 120
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    val markerPaint = Paint().apply {
+        color = colorp
+        isAntiAlias = true
+    }
+
+    val markerPath = Path().apply {
+        moveTo(width / 2f, height.toFloat()) // Punta inferior
+        cubicTo(width / 2f, height * 0.75f, width * 0.8f, height * 0.6f, width * 0.8f, height * 0.4f)
+        arcTo(width * 0.2f, 0f, width * 0.8f, height * 0.8f, 0f, 180f, false)
+        cubicTo(width * 0.2f, height * 0.6f, width / 2f, height * 0.75f, width / 2f, height.toFloat())
+        close()
+    }
+    canvas.drawPath(markerPath, markerPaint)
+
+    val numberBackgroundPaint = Paint().apply {
+        color = colorp
+        isAntiAlias = true
+    }
+
+    val numberBackgroundRadius = 30f
+    val numberBackgroundX = width / 2f
+
+    val numberBackgroundY = height * 0.4f
+
+    canvas.drawCircle(numberBackgroundX, numberBackgroundY, numberBackgroundRadius, numberBackgroundPaint)
+
+    val textPaint = Paint().apply {
+        color = Color.WHITE
+        textSize = 35f
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+        isAntiAlias = true
+    }
+
+    val textX = width / 2f
+    val textY = numberBackgroundY - ((textPaint.descent() + textPaint.ascent()) / 2)
+
+    canvas.drawText(number.toString(), textX, textY, textPaint)
+
+    return BitmapDrawable(context.resources, bitmap)
 }

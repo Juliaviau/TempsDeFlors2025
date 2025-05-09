@@ -1,11 +1,26 @@
 [
   {
+    "lat": 41.98113144941118,
+    "lon": 2.825184105945859,
+    "titol": "Punt 1. Jardins de les Pedreres",
+    "descripcio": "Menys mòbils, més natura",
+    "snippet": "En un món on la tecnologia marca el ritme de la nostra vida, “Menys mòbils, més natura”, és un espai artístic que vol inspirar a la reflexió sobre la nostra relació amb el món digital versus la natura i sensibilitzar de l’impacte i el lloc que ocupa en les nostres vides.",
+    "ruta": "1",
+    "numero": "1",
+    "visitat":"no" ,
+    "foto": "no",
+    "data": "dd-hh-yyyy"
+  },
+
+
+  {
     "lat": 41.97758679101597,
     "lon": 2.807102518632676,
     "titol": "Punt 98. Centre Cívic Can Ninetes",
     "descripcio": "Entre dos mons – Una reflexió floral sobre el canvi climàtic",
     "snippet": "La nostra instal·lació, creada amb un grup de persones amb discapacitat psicosocial, convida a reflexionar sobre la crisi climàtica des d’una perspectiva crítica i esperançadora. Amb el títol “Entre dos mons”, presenta un arc dividit en dues meitats que simbolitzen l’estat actual i el futur potencial del nostre planeta",
     "ruta": "2",
+    "numero": "98",
     "visitat":"no" ,
     "foto": "no",
     "data": "dd-hh-yyyy"
@@ -17,6 +32,7 @@
     "descripcio": "Som Llavors, tornar a l’origen",
     "snippet": "Rendint un homenatge als inicis, es vol plantejar un projecte evolutiu, fusionant dos inicis: l'inici del cicle de la natura, representat per les llavors, i l'inici de l'expressió musical de l'èsser humà, representada pels tambors, l'instrument mÈs primigeni de la humanitat, que ens arrela als orìgens i a la terra. En aquest temps de mirades enfocades al futur, volem tornar la vista enrere.",
     "ruta": "2",
+    "numero": "99",
     "visitat":"no" ,
     "foto": "no",
     "data": "dd-hh-yyyy"
@@ -28,6 +44,7 @@
     "descripcio": "Celebrant la diversitat que ens uneix",
     "snippet": "Un homenatge a la diversitat i els vincles que donen vida al barri. Som persones amb característiques úniques que quan ens unim, podem aconseguir una harmonia bonica i ben forta",
     "ruta": "2",
+    "numero": "100",
     "visitat":"no" ,
     "foto": "no",
     "data": "dd-hh-yyyy"
@@ -39,6 +56,7 @@
     "descripcio": "Qui va dir que no hi hauria flors?",
     "snippet": "Enguany l'Institut Santa Eugènia es reinventa i fa servir allò que el caracteritza: la resiliencia, la destresa i la perseveranca del seu alumnat i professorat Aquesta proposta s'ha fet amb embalatges de materials rebuts al centre i a partir de la crida feta perquè es guardessin els papers amb els quals s'emboliquen els regals, un cop utilitzats. Gràcies a tothom!",
     "ruta": "2",
+    "numero": "101",
     "visitat":"no" ,
     "foto": "no",
     "data": "dd-hh-yyyy"
@@ -50,6 +68,7 @@
     "descripcio": "Mercat de barri",
     "snippet": "Espai de mercat proper a la personalitat del barri. La seva esglÈsia, les cases i les voltes, acompanyant les parades: una merceria (elaborar, crear, cosir), la peixateria i la fleca (aliments), la floristeria (olor, colors, sentiments), la papereria (sàvies, entreteniment) i l’obrador d’un terrissaire (modelatge creatiu manual).",
     "ruta": "2",
+    "numero": "102",
     "visitat":"no" ,
     "foto": "no",
     "data": "dd-hh-yyyy"

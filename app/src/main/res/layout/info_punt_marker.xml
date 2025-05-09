@@ -4,7 +4,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@android:color/white"
-    android:elevation="6dp">
+    android:elevation="8dp">
 
     <RelativeLayout
         android:layout_width="260dp"
@@ -16,7 +16,7 @@
             android:layout_marginTop="4dp"
             android:id="@+id/ruta"
             android:textStyle="bold"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:text="Ruta 2"/>
 
         <TextView

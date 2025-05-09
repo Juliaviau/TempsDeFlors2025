@@ -1,12 +1,10 @@
 package com.example.tempsdeflors
 
-import com.example.tempsdeflors.R
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -46,8 +44,6 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
-import org.osmdroid.views.overlay.infowindow.InfoWindow
-import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
@@ -182,7 +178,7 @@ fun OsmMapView() {
                     "accessible" -> context.getDrawable(R.drawable.accessibility_svgrepo_com)
                     else -> null
                 }
-
+                marker.relatedObject = punt
                 val infoWindow = InfoPuntMarker(mapView)
                 marker.infoWindow = infoWindow
 

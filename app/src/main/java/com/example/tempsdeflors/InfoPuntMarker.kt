@@ -1,14 +1,16 @@
 package com.example.tempsdeflors
 
-import com.example.tempsdeflors.R
-import android.view.View
+import android.content.res.ColorStateList
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.infowindow.InfoWindow
-import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow
+
 
 /*
 class InfoPuntMarker(mapView: MapView?) : MarkerInfoWindow(R.layout.splash_screen, mapView) {
@@ -74,6 +76,7 @@ class InfoPuntMarker(private val mapView: MapView) :
 
     override fun onOpen(item: Any?) {
         val marker = item as? Marker ?: return
+        val punt = marker.relatedObject as? Punts ?: return
 
         val titleView = mView.findViewById<TextView>(R.id.title)
         val descView = mView.findViewById<TextView>(R.id.description)
@@ -85,28 +88,43 @@ class InfoPuntMarker(private val mapView: MapView) :
         descView.text = marker.subDescription
         subDescView.text = marker.snippet
 
+        ruta.text = "RUTA " + punt.ruta
 
-
-        visitatButton.setOnClickListener {
-            // Handle visitat button click
+        when (punt.ruta) {
+            "1" -> {
+                    ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta1))
+                    visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta1))
+                }
+            "2" -> {
+                    ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta2))
+                    visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta2))
+            }
+            "3" -> {
+                    ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta3))
+                    visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta3))
+                }
+            "ACCESSIBLE" -> {
+                    ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.accessible))
+                    visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.accessible))
+                }
         }
 
-        // Handle marker click
-        marker.setOnMarkerClickListener { _, _ ->
-            // Handle marker click
-            true
-        }
-
-        // Handle map click
         mapView.setOnClickListener {
             close()
         }
+        visitatButton.setOnClickListener {
+            // Handle visitat button click
+            close()
+        }
+        mView.setOnClickListener{
+            close()
+        }
+
+        // Handle map click
+
 
 
         closeAllInfoWindowsOn(mapView)
 
-        mapView.setOnClickListener {
-            close()
-        }
     }
 }

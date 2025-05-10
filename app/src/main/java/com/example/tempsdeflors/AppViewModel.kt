@@ -3,6 +3,8 @@ package com.example.tempsdeflors
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -63,6 +65,27 @@ class AppViewModel (private val puntsRepository: PuntsRepository) : ViewModel() 
             loadpunts()
         }
     }
+
+    private val _puntsVisitats = MutableStateFlow<Set<String>>(emptySet())
+    val puntsVisitats: StateFlow<Set<String>> get() = _puntsVisitats
+
+    fun carregarPuntsVisitats() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val punts = puntsRepository.getAllApunts() // Retorna List<Punt>
+            _puntsVisitats.value = punts.map { it.numero }.toSet()
+        }
+    }
+
+
+
+    /*fun existeixPuntByNumero(numero: String): Boolean {
+        var result = true
+        viewModelScope.launch(Dispatchers.IO) {
+            result = puntsRepository.existeixPuntByNumero(numero)
+        }
+        println("existeixPuntByNumero: $result")
+        return result
+    }*/
 
     var ap : PuntsEntity? = null
     fun getApuntByIdAsync(somniId: Int) {

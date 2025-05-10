@@ -10,7 +10,7 @@ import androidx.room.Query
 @Dao
 interface PuntsDao {
     @Query("SELECT * FROM punts ORDER BY numero DESC")
-    fun getAllPunts(): List<PuntsEntity>
+    fun getAllPunts(): MutableList<PuntsEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPunts(apunts: PuntsEntity)
@@ -23,5 +23,8 @@ interface PuntsDao {
 
     @Query("DELETE FROM punts WHERE numero = :numero")
     fun deleteApuntsByNumero(numero: String)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM punts WHERE numero = :numero)")
+    suspend fun existeixPuntByNumero(numero: String): Boolean
 
 }

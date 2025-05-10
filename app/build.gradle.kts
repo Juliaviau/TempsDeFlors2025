@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.benchmark.macro)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

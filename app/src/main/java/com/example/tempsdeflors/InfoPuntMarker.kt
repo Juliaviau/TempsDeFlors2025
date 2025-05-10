@@ -6,6 +6,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.PendingIntentCompat.getActivity
@@ -22,6 +24,7 @@ class InfoPuntMarker(private val mapView: MapView) :
     val database = AppDatabase.getInstance(context)
     val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
     val viewmodel = AppViewModel(repositoryEnlaces!!)
+
 
     //val puntsRepo = PuntsRepository(context)
 

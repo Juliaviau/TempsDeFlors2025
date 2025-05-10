@@ -6,4 +6,6 @@ class PuntsRepository(private val apuntsDao: PuntsDao) {
     fun deleteApunts(apunts: PuntsEntity) = apuntsDao.delete(apunts)
     fun getApuntsById(id: Int) = apuntsDao.getPuntsById(id)
     fun deleteApuntsByNumero(numero: String) = apuntsDao.deleteApuntsByNumero(numero)
+    suspend fun existeixPuntByNumero(numero: String) = apuntsDao.existeixPuntByNumero(numero)
+
 }

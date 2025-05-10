@@ -10,16 +10,12 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.location.LocationManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.benchmark.perfetto.ExperimentalPerfettoTraceProcessorApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -43,8 +39,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
@@ -62,6 +56,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +68,6 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,7 +93,6 @@ import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import java.io.Console
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -141,8 +135,6 @@ class MainActivity : ComponentActivity() {
 
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
 
-
-
         setContent {
             TempsDeFlorsTheme {
                 PantallaMapa()
@@ -166,6 +158,12 @@ fun PantallaMapa() {
     val punts = remember { carregarPuntsDesDeJSON(context)}
     val grouped = punts.groupBy { it.ruta }
     val listState = rememberLazyListState()
+
+    val database = AppDatabase.getInstance(context)
+    val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
+    val viewmodel = AppViewModel(repositoryEnlaces!!)
+    viewmodel.carregarPuntsVisitats()
+    val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
 
     //Menu de l'esquerra
     ModalNavigationDrawer (
@@ -197,25 +195,11 @@ fun PantallaMapa() {
                                 modifier = Modifier
                                     .background(
                                         when (ruta) {
-                                            "1" -> {
-                                                androidx.compose.ui.graphics.Color(0xFF00a80d)
-                                            }
-
-                                            "2" -> {
-                                                androidx.compose.ui.graphics.Color(0xFF7d007d)
-                                            }
-
-                                            "3" -> {
-                                                androidx.compose.ui.graphics.Color(0xFF004988)
-                                            }
-
-                                            "ACCESSIBLE" -> {
-                                                androidx.compose.ui.graphics.Color.Gray
-                                            }
-
-                                            else -> {
-                                                androidx.compose.ui.graphics.Color.Gray
-                                            }
+                                            "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
+                                            "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
+                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                            else -> {androidx.compose.ui.graphics.Color.Gray}
                                         },
                                         shape = RoundedCornerShape(6.dp)
                                     )
@@ -223,7 +207,6 @@ fun PantallaMapa() {
                                     .padding(vertical = 8.dp)
                                     .padding(horizontal = 6.dp)
                                     .wrapContentSize(Alignment.Center)
-
                             )
                         }
 
@@ -235,7 +218,9 @@ fun PantallaMapa() {
                                 isFirst = index == 0,
                                 isLast = index == punts.lastIndex,
                                 scope = scope,
-                                drawerState = drawerState
+                                drawerState = drawerState,
+                                puntv = puntsVisitats.contains(punt.numero),
+                                nextpuntv = puntsVisitats.contains(nextPunt?.numero)
                             )
                         }
 
@@ -317,14 +302,15 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
 
 
 @Composable
-fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean, scope: CoroutineScope,drawerState: DrawerState) {
-    val circleColor = if (punt.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
+fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean,
+    scope: CoroutineScope, drawerState: DrawerState, puntv: Boolean, nextpuntv: Boolean) {
+    val circleColor = if (/*punt.visitat == "si"*/puntv) Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
 
     // Degradat entre el color del punt actual i el següent
     val lineGradient = Brush.verticalGradient(
         colors = listOf(
             circleColor,
-            if (nextPunt?.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336)
+            if (/*nextPunt?.visitat == "si"*/nextpuntv) Color(0xFF4CAF50) else Color(0xFFF44336)
         )
     )
 
@@ -388,7 +374,7 @@ fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolea
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (punt.visitat == "si") "Visitat" else "No visitat",
+                    text = if (/*punt.visitat == "si"*/puntv) "Visitat" else "No visitat",
                     fontSize = 16.sp,
                     color = circleColor
                 )
@@ -451,6 +437,12 @@ fun OsmMapView() {
     val context = LocalContext.current
     //val puntsRepo = PuntsRepository(context)
 
+    val database = AppDatabase.getInstance(context)
+    val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
+    val viewmodel = AppViewModel(repositoryEnlaces!!)
+    viewmodel.carregarPuntsVisitats()
+    val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
+
     val punts = remember { carregarPuntsDesDeJSON(context) }
 
     val mapView = MapView(context)
@@ -481,9 +473,11 @@ fun OsmMapView() {
             startLocationOverlay(locationOverlay, locationProvider,mapView)
         }
     }
+
     if (!locationPermissionState.value) {
         Text("Cal activar el permís de localització.")
     }
+
     //Una vista per a veure el mapa
     AndroidView(
         factory = { context ->
@@ -775,7 +769,6 @@ fun OsmMapView() {
                 GeoPoint(41.97709244210335, 2.807943487103821),
                 GeoPoint(41.977659707636306, 2.8074963985445667),
             )
-
             val ruta3Coords = listOf(
                 GeoPoint(41.98077872253018, 2.8157099108425307),//103
                 GeoPoint(41.98105937326412, 2.8159000512992542),
@@ -844,7 +837,6 @@ fun OsmMapView() {
             )
 
             val polyline2 = Polyline()
-
             //if (mostrarRuta2.value) {
                 polyline2.setPoints(ruta2Coords)
                 polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
@@ -854,7 +846,6 @@ fun OsmMapView() {
             /*} else {
                 mapView.overlays.remove(polyline2)
             }*/
-
 
             val polyline3 = Polyline()
             polyline3.setPoints(ruta3Coords)
@@ -871,6 +862,9 @@ fun OsmMapView() {
             mapView.overlays.add(polyline1)
 
             punts.forEach { punt ->
+                val esVisitats = puntsVisitats.contains(punt.numero)
+
+
                 val marker = Marker(mapView)
                 marker.position = GeoPoint(punt.lat, punt.lon)
                 marker.title = punt.titol
@@ -883,7 +877,7 @@ fun OsmMapView() {
 
                 when (punt.ruta) {
                     "1" -> {
-                        color = if (punt.visitat.equals("no"))
+                        color = if (/*punt.visitat.equals("no")*/!esVisitats)
                         ContextCompat.getColor(mapView.context, R.color.ruta1) else ContextCompat.getColor(mapView.context, R.color.ruta1clar)
                     }
                     "2" -> {

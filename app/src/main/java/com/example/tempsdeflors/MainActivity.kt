@@ -70,7 +70,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,10 +99,41 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.Console
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+//fonts
+@OptIn(ExperimentalTextApi::class)
+/*val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
 
+val poppinsFont = FontFamily(
+    Font(
+        googleFont = GoogleFont("Poppins"),
+        fontProvider = provider
+    )
+)
+
+val caveat = FontFamily(
+    Font(
+        googleFont = GoogleFont("Caveat"),
+        fontProvider = provider
+    )
+)
+
+val kalnia = FontFamily(
+    Font(
+        googleFont = GoogleFont("Kalnia Glaze"),
+        fontProvider = provider
+    ))
+*/
 val llistaDeMarkers = mutableListOf<Marker>()
 var mapa = mutableListOf<MapView>()
+private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.getDefault()).format(this)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

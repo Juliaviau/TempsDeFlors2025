@@ -1,14 +1,17 @@
 package com.example.tempsdeflors
 
 import android.content.res.ColorStateList
+import android.os.Build
 import android.widget.Button
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.PendingIntentCompat.getActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.infowindow.InfoWindow
@@ -16,7 +19,9 @@ import org.osmdroid.views.overlay.infowindow.InfoWindow
 class InfoPuntMarker(private val mapView: MapView) :
     InfoWindow(R.layout.info_punt_marker, mapView) {
     val context = mapView.context
-
+    val database = AppDatabase.getInstance(context)
+    val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
+    val viewmodel = AppViewModel(repositoryEnlaces!!)
 
     //val puntsRepo = PuntsRepository(context)
 
@@ -24,6 +29,7 @@ class InfoPuntMarker(private val mapView: MapView) :
         // Do something
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onOpen(item: Any?) {
         val marker = item as? Marker ?: return
         val punt = marker.relatedObject as? Punts ?: return
@@ -64,17 +70,20 @@ class InfoPuntMarker(private val mapView: MapView) :
         mapView.setOnClickListener {
             close()
         }
+
+        //nomes guardo els que estan visitats
         visitatButton.setOnClickListener {
             // Handle visitat button click
             if (punt.visitat.equals("no")) {
                // punt.visitat = "si"
                 punt.visitat = "si"
                 //puntsRepo.marcarComVisitat(punt.numero)
-
+                viewmodel.marcarComVisitat(punt.ruta, punt.numero, "si")
             } else {
                 punt.visitat = "no"
                 //punt.data = ""
                 //puntsRepo.marcarComNoVisitat(punt.numero)
+                viewmodel.deletePuntById(punt.numero)
             }
             mapView.invalidate()
             close()

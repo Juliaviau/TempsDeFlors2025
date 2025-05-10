@@ -1,25 +1,56 @@
 package com.example.tempsdeflors
 
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.benchmark.perfetto.ExperimentalPerfettoTraceProcessorApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
@@ -28,19 +59,27 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tempsdeflors.ui.theme.TempsDeFlorsTheme
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -48,47 +87,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.compass.CompassOverlay
+import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
+import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import android.graphics.Path
-import android.preference.PreferenceActivity
-import androidx.benchmark.perfetto.ExperimentalPerfettoTraceProcessorApi
-import androidx.benchmark.perfetto.Row
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.compose.ui.graphics.*
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DrawerState
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import kotlinx.coroutines.CoroutineScope
-import java.io.File
+
 
 val llistaDeMarkers = mutableListOf<Marker>()
 var mapa = mutableListOf<MapView>()
@@ -136,8 +140,9 @@ fun PantallaMapa() {
                 Text("Espais",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp).
-                    align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
 
                 LazyColumn(
@@ -156,11 +161,25 @@ fun PantallaMapa() {
                                 modifier = Modifier
                                     .background(
                                         when (ruta) {
-                                            "1" -> {androidx.compose.ui.graphics.Color( 0xFF00a80d)}
-                                            "2" -> {androidx.compose.ui.graphics.Color( 0xFF7d007d)}
-                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
-                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
-                                            else -> {androidx.compose.ui.graphics.Color.Gray }
+                                            "1" -> {
+                                                androidx.compose.ui.graphics.Color(0xFF00a80d)
+                                            }
+
+                                            "2" -> {
+                                                androidx.compose.ui.graphics.Color(0xFF7d007d)
+                                            }
+
+                                            "3" -> {
+                                                androidx.compose.ui.graphics.Color(0xFF004988)
+                                            }
+
+                                            "ACCESSIBLE" -> {
+                                                androidx.compose.ui.graphics.Color.Gray
+                                            }
+
+                                            else -> {
+                                                androidx.compose.ui.graphics.Color.Gray
+                                            }
                                         },
                                         shape = RoundedCornerShape(6.dp)
                                     )
@@ -272,7 +291,9 @@ fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolea
         )
     )
 
-    Row(modifier = Modifier.fillMaxWidth().padding(top = if (isFirst)  16.dp else 0.dp)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = if (isFirst) 16.dp else 0.dp)) {
         // Timeline
         Column(
             modifier = Modifier
@@ -393,11 +414,37 @@ fun OsmMapView() {
     val mapView = MapView(context)
     val mapController = mapView.controller
     mapa = mutableListOf(mapView)
+    val activity = context as? Activity
+    val locationPermissionState = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val locationProvider = GpsMyLocationProvider(context)
+    val locationOverlay = MyLocationNewOverlay(locationProvider, mapView)
 
+    LaunchedEffect(Unit) {
+        if (!locationPermissionState.value && activity != null) {
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                1001
+            )
+        } else {
+            startLocationOverlay(locationOverlay, locationProvider,mapView)
+        }
+    }
+    if (!locationPermissionState.value) {
+        Text("Cal activar el permís de localització.")
+    }
     //Una vista per a veure el mapa
     AndroidView(
         factory = { context ->
-            mapView.setTileSource(TileSourceFactory.MAPNIK)//tipus de mapa
+
+            mapView.setTileSource(TileSourceFactory.MAPNIK)//tipus de mapa opentopo, mapink
             mapView.setMultiTouchControls(true)//que es pugui tocar
             mapController.setZoom(15.0)//zoom aplicat a l'inici
             mapController.setCenter(GeoPoint(41.983, 2.824)) //coordenades de l'inici
@@ -559,18 +606,63 @@ fun OsmMapView() {
                 llistaDeMarkers.add(marker)
             }
 
-            // Mostrar localització de l'usuari
-            val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(context), mapView).apply {
-                enableMyLocation()
-                enableFollowLocation()
+            //Rotar mapa
+            val rotationGestureOverlay = RotationGestureOverlay(mapView)
+            rotationGestureOverlay.isEnabled
+            mapView.setMultiTouchControls(true)
+            mapView.overlays.add(rotationGestureOverlay)
+
+            //Bruixola
+            val compassOverlay = CompassOverlay(context, InternalCompassOrientationProvider(context), mapView).apply {
+                enableCompass()
             }
-            mapView.overlays.add(locationOverlay)
+            mapView.overlays.add(compassOverlay)
 
             mapView//aixo sempre al final
         },
         modifier = Modifier.fillMaxSize()
+
     )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(onClick = {
+            val loc = locationOverlay.myLocation
+            if (loc != null) {
+                Handler(Looper.getMainLooper()).post {
+                    mapController.animateTo(loc)
+                }
+            }
+        }) {
+            Icon(
+                imageVector = Icons.Default.Place,
+                contentDescription = "Centrar ubicació"
+            )
+        }
+    }
 }
+
+fun startLocationOverlay(locationOverlay: MyLocationNewOverlay,locationProvider: GpsMyLocationProvider,mapView: MapView) {
+
+    locationOverlay.enableMyLocation()
+    locationOverlay.enableFollowLocation()
+
+    locationOverlay.runOnFirstFix {
+        val location = locationOverlay.myLocation
+        if (location != null) {
+            Handler(Looper.getMainLooper()).post {
+                mapView.controller.animateTo(location)
+            }
+        }
+    }
+
+    mapView.overlays.add(locationOverlay)
+}
+
 
 fun createNumberedMarkerDrawable(context: Context, number: Int, colorp: Int): Drawable {
     val width = 100

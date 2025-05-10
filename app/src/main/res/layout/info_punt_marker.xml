@@ -59,6 +59,7 @@
             android:textSize="14sp"
             android:textColor="@android:color/darker_gray"
             android:ellipsize="end"
+            android:justificationMode="inter_word"
             android:text="Snippet molt llarg que hauria d’ajustar-se a l’amplada i fer salt de línia automàtic." />
 
         <LinearLayout

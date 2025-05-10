@@ -132,7 +132,7 @@ private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.ge
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        DatabaseManager.init(this)
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
 
         setContent {
@@ -159,11 +159,12 @@ fun PantallaMapa() {
     val grouped = punts.groupBy { it.ruta }
     val listState = rememberLazyListState()
 
-    val database = AppDatabase.getInstance(context)
+    /*val database = AppDatabase.getInstance(context)
     val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
     val viewmodel = AppViewModel(repositoryEnlaces!!)
     viewmodel.carregarPuntsVisitats()
     val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
+    println("puntsvisitats: " + puntsVisitats)*/
 
     //Menu de l'esquerra
     ModalNavigationDrawer (
@@ -218,9 +219,9 @@ fun PantallaMapa() {
                                 isFirst = index == 0,
                                 isLast = index == punts.lastIndex,
                                 scope = scope,
-                                drawerState = drawerState,
+                                drawerState = drawerState/*,
                                 puntv = puntsVisitats.contains(punt.numero),
-                                nextpuntv = puntsVisitats.contains(nextPunt?.numero)
+                                nextpuntv = puntsVisitats.contains(nextPunt?.numero)*/
                             )
                         }
 
@@ -276,7 +277,7 @@ fun PantallaMapa() {
                 startDestination = "map",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("map") { OsmMapView() }
+                composable("map") { OsmMapView(/*puntsVisitats*/) }
                 composable("altre") { Altre() }
             }
         }
@@ -303,14 +304,14 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
 
 @Composable
 fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean,
-    scope: CoroutineScope, drawerState: DrawerState, puntv: Boolean, nextpuntv: Boolean) {
-    val circleColor = if (/*punt.visitat == "si"*/puntv) Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
+    scope: CoroutineScope, drawerState: DrawerState/*, puntv: Boolean, nextpuntv: Boolean*/) {
+    val circleColor = if (punt.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
 
     // Degradat entre el color del punt actual i el següent
     val lineGradient = Brush.verticalGradient(
         colors = listOf(
             circleColor,
-            if (/*nextPunt?.visitat == "si"*/nextpuntv) Color(0xFF4CAF50) else Color(0xFFF44336)
+            if (nextPunt?.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336)
         )
     )
 
@@ -374,7 +375,7 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (/*punt.visitat == "si"*/puntv) "Visitat" else "No visitat",
+                    text = if (punt.visitat == "si") "Visitat" else "No visitat",
                     fontSize = 16.sp,
                     color = circleColor
                 )
@@ -433,17 +434,18 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
 }*/
 
 @Composable
-fun OsmMapView() {
+fun OsmMapView(/*puntsVisitats: Set<String>*/) {
     val context = LocalContext.current
     //val puntsRepo = PuntsRepository(context)
 
-    val database = AppDatabase.getInstance(context)
-    val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
-    val viewmodel = AppViewModel(repositoryEnlaces!!)
-    viewmodel.carregarPuntsVisitats()
-    val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
+    //val database = AppDatabase.getInstance(context)
+    //val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
+    //val viewmodel = AppViewModel(repositoryEnlaces!!)
+    //viewmodel.carregarPuntsVisitats()
+    //val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
 
     val punts = remember { carregarPuntsDesDeJSON(context) }
+   // println("puntsvisitats: " + puntsVisitats)
 
     val mapView = MapView(context)
     val mapController = mapView.controller
@@ -862,9 +864,6 @@ fun OsmMapView() {
             mapView.overlays.add(polyline1)
 
             punts.forEach { punt ->
-                val esVisitats = puntsVisitats.contains(punt.numero)
-
-
                 val marker = Marker(mapView)
                 marker.position = GeoPoint(punt.lat, punt.lon)
                 marker.title = punt.titol
@@ -877,15 +876,15 @@ fun OsmMapView() {
 
                 when (punt.ruta) {
                     "1" -> {
-                        color = if (/*punt.visitat.equals("no")*/!esVisitats)
+                        color = if (punt.visitat.equals("no")/*puntsVisitats.contains(punt.numero)*/)
                         ContextCompat.getColor(mapView.context, R.color.ruta1) else ContextCompat.getColor(mapView.context, R.color.ruta1clar)
                     }
                     "2" -> {
-                        color = if (punt.visitat.equals("no"))
+                        color = if (punt.visitat.equals("no")/*puntsVisitats.contains(punt.numero)*/)
                             ContextCompat.getColor(mapView.context, R.color.ruta2) else ContextCompat.getColor(mapView.context, R.color.ruta2clar)
                     }
                     "3" -> {
-                        color = if (punt.visitat.equals("no"))
+                        color = if (punt.visitat.equals("no")/*puntsVisitats.contains(punt.numero)*/)
                             ContextCompat.getColor(mapView.context, R.color.ruta3) else ContextCompat.getColor(mapView.context, R.color.ruta3clar)
                     }
                     "ACCESSIBLE" -> {
@@ -916,60 +915,6 @@ fun OsmMapView() {
 
     )
 
-    /*Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Row {
-            FloatingActionButton(onClick = {
-
-            },
-                shape = CircleShape,
-                containerColor = Color(ContextCompat.getColor(context, R.color.ruta1)),
-                contentColor = androidx.compose.ui.graphics.Color.White,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Ruta 1"
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            FloatingActionButton(onClick = {
-                println("Hola"+mostrarRuta2.value)
-                if (mostrarRuta2.value) {
-                    mostrarRuta2.value = false
-                    return@FloatingActionButton
-                } else {
-                    mostrarRuta2.value = true
-                }
-            },
-                shape = CircleShape,
-                containerColor = if (mostrarRuta2.value) Color(ContextCompat.getColor(context, R.color.ruta2) ) else Color(ContextCompat.getColor(context, R.color.ruta2clar)),
-                contentColor = androidx.compose.ui.graphics.Color.White,
-            ) {
-                Icon(
-                    imageVector = if (mostrarRuta2.value) Icons.Default.CheckCircle else Icons.Default.Clear,
-                    contentDescription = "Ruta 1"
-                )
-            }
-            FloatingActionButton(onClick = {
-
-            },
-                shape = CircleShape,
-                containerColor = Color(ContextCompat.getColor(context, R.color.ruta3)),
-                contentColor = androidx.compose.ui.graphics.Color.White,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Ruta 1"
-                )
-            }
-        }
-
-    }*/
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -984,7 +929,6 @@ fun OsmMapView() {
                 }
             }
         },
-
             shape = CircleShape,
             containerColor = Color(0xFF93117e),
             contentColor = androidx.compose.ui.graphics.Color.White,

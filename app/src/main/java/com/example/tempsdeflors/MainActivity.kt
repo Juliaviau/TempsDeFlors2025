@@ -81,6 +81,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tempsdeflors.ui.theme.TempsDeFlorsTheme
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -117,9 +119,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalPerfettoTraceProcessorApi::class
-)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,ExperimentalPerfettoTraceProcessorApi::class)
 @Composable
 fun PantallaMapa() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -127,10 +127,10 @@ fun PantallaMapa() {
     val navController = rememberNavController()
 
     val context = LocalContext.current
-    val puntsRepo = PuntsRepository(context)
-    puntsRepo.inicialitzarSiCal()
+    //val puntsRepo = PuntsRepository(context)
+    //puntsRepo.inicialitzarSiCal()
 
-    val punts = remember { puntsRepo.llegirPunts() }
+    val punts = remember { carregarPuntsDesDeJSON(context)}
     val grouped = punts.groupBy { it.ruta }
     val listState = rememberLazyListState()
 
@@ -364,7 +364,12 @@ fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolea
     }
 }
 
-
+fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
+    val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
+    val gson = Gson()
+    val tipus = object : TypeToken<List<Punts>>() {}.type
+    return gson.fromJson(json, tipus)
+}
 
 
 @Composable
@@ -411,9 +416,9 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
 @Composable
 fun OsmMapView() {
     val context = LocalContext.current
-    val puntsRepo = PuntsRepository(context)
+    //val puntsRepo = PuntsRepository(context)
 
-    val punts = remember { puntsRepo.llegirPunts() }
+    val punts = remember { carregarPuntsDesDeJSON(context) }
 
     val mapView = MapView(context)
     val mapController = mapView.controller

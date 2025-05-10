@@ -18,7 +18,7 @@ class InfoPuntMarker(private val mapView: MapView) :
     val context = mapView.context
 
 
-    val puntsRepo = PuntsRepository(context)
+    //val puntsRepo = PuntsRepository(context)
 
     override fun onClose() {
         // Do something
@@ -69,12 +69,12 @@ class InfoPuntMarker(private val mapView: MapView) :
             if (punt.visitat.equals("no")) {
                // punt.visitat = "si"
                 punt.visitat = "si"
-                puntsRepo.marcarComVisitat(punt.numero)
+                //puntsRepo.marcarComVisitat(punt.numero)
 
             } else {
                 punt.visitat = "no"
                 //punt.data = ""
-                puntsRepo.marcarComNoVisitat(punt.numero)
+                //puntsRepo.marcarComNoVisitat(punt.numero)
             }
             mapView.invalidate()
             close()

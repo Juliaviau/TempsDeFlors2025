@@ -43,6 +43,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
@@ -92,6 +94,7 @@ import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.io.Console
 
 
 val llistaDeMarkers = mutableListOf<Marker>()
@@ -229,7 +232,7 @@ fun PantallaMapa() {
             //barra lila de sobre del mapa, que diu temps de flors i l'icona del menu
             topBar = {
                 TopAppBar(
-                    title = { Text("Temps de Flors 2025", fontSize = 24.sp) },
+                    title = { Text("Temps de Flors 2025", fontSize = 24.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif, color = Color(0xFF93117e), fontWeight = FontWeight.Bold)},
                     //icona del menu
                     navigationIcon = {
                         IconButton(onClick = {
@@ -237,7 +240,8 @@ fun PantallaMapa() {
                         }) {
                             Icon(Icons.Default.Menu, contentDescription = "Obrir el menú")
                         }
-                    }
+                    },
+
                 )
             }
         ) { innerPadding ->
@@ -426,6 +430,8 @@ fun OsmMapView() {
     val locationProvider = GpsMyLocationProvider(context)
     val locationOverlay = MyLocationNewOverlay(locationProvider, mapView)
 
+    //var mostrarRuta2 = remember { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
         if (!locationPermissionState.value && activity != null) {
             ActivityCompat.requestPermissions(
@@ -552,11 +558,17 @@ fun OsmMapView() {
             )
 
             val polyline2 = Polyline()
-            polyline2.setPoints(ruta2Coords)
-            polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
-            polyline2.getPaint().setStrokeCap(Paint.Cap.ROUND);
-            polyline2.width = 8.0f // gruix de la línia
-            mapView.overlays.add(polyline2)
+
+            //if (mostrarRuta2.value) {
+                polyline2.setPoints(ruta2Coords)
+                polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
+                polyline2.getPaint().setStrokeCap(Paint.Cap.ROUND);
+                polyline2.width = 8.0f // gruix de la línia
+                mapView.overlays.add(polyline2)
+            /*} else {
+                mapView.overlays.remove(polyline2)
+            }*/
+
 
             val polyline3 = Polyline()
             polyline3.setPoints(ruta3Coords)
@@ -624,6 +636,60 @@ fun OsmMapView() {
 
     )
 
+    /*Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Row {
+            FloatingActionButton(onClick = {
+
+            },
+                shape = CircleShape,
+                containerColor = Color(ContextCompat.getColor(context, R.color.ruta1)),
+                contentColor = androidx.compose.ui.graphics.Color.White,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Ruta 1"
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            FloatingActionButton(onClick = {
+                println("Hola"+mostrarRuta2.value)
+                if (mostrarRuta2.value) {
+                    mostrarRuta2.value = false
+                    return@FloatingActionButton
+                } else {
+                    mostrarRuta2.value = true
+                }
+            },
+                shape = CircleShape,
+                containerColor = if (mostrarRuta2.value) Color(ContextCompat.getColor(context, R.color.ruta2) ) else Color(ContextCompat.getColor(context, R.color.ruta2clar)),
+                contentColor = androidx.compose.ui.graphics.Color.White,
+            ) {
+                Icon(
+                    imageVector = if (mostrarRuta2.value) Icons.Default.CheckCircle else Icons.Default.Clear,
+                    contentDescription = "Ruta 1"
+                )
+            }
+            FloatingActionButton(onClick = {
+
+            },
+                shape = CircleShape,
+                containerColor = Color(ContextCompat.getColor(context, R.color.ruta3)),
+                contentColor = androidx.compose.ui.graphics.Color.White,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Ruta 1"
+                )
+            }
+        }
+
+    }*/
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -637,7 +703,12 @@ fun OsmMapView() {
                     mapController.animateTo(loc)
                 }
             }
-        }) {
+        },
+
+            shape = CircleShape,
+            containerColor = Color(0xFF93117e),
+            contentColor = androidx.compose.ui.graphics.Color.White,
+            ) {
             Icon(
                 imageVector = Icons.Default.Place,
                 contentDescription = "Centrar ubicació"

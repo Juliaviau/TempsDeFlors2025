@@ -57,6 +57,7 @@ import androidx.benchmark.perfetto.Row
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -83,10 +84,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import kotlinx.coroutines.CoroutineScope
 import java.io.File
 
+val llistaDeMarkers = mutableListOf<Marker>()
+var mapa = mutableListOf<MapView>()
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,101 +178,14 @@ fun PantallaMapa() {
                                 punt = punt,
                                 nextPunt = nextPunt,
                                 isFirst = index == 0,
-                                isLast = index == punts.lastIndex
+                                isLast = index == punts.lastIndex,
+                                scope = scope,
+                                drawerState = drawerState
                             )
                         }
 
                     }
                 }
-
-                /*LazyColumn (state = listState, modifier = Modifier.fillMaxSize().padding(start = 24.dp)){
-                    grouped.forEach { (ruta, punts) ->
-                        stickyHeader {
-                            Text(
-                                "Ruta $ruta",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(10.dp)
-                                    .fillMaxWidth()
-                                    .padding(6.dp)
-                                    .align(Alignment.CenterHorizontally)
-                                    .background(
-                                        when (ruta) {
-                                            "1" -> {androidx.compose.ui.graphics.Color( 0xFF00a80d)}
-                                            "2" -> {androidx.compose.ui.graphics.Color( 0xFF7d007d)}
-                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
-                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
-                                            else -> {androidx.compose.ui.graphics.Color.Gray }
-                                        }
-                                    )
-                            )
-                        }
-
-                        itemsIndexed(punts) { index, punt ->
-                            Box {
-                                // Línia vertical contínua
-                                Box(
-                                    modifier = Modifier
-                                        .width(2.dp)
-                                        .fillMaxHeight()
-                                        .background(androidx.compose.ui.graphics.Color.Black)
-                                        .align(Alignment.TopStart)
-                                        .offset(x = 11.dp) // per centrar-la darrere dels cercles
-                                )
-
-                                // Contingut del punt
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp)
-                                ) {
-                                    // Cercle indicador
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .align(Alignment.Top)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(12.dp)
-                                                .align(Alignment.Center)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    if (punt.visitat.equals("si")) androidx.compose.ui.graphics.Color.Green
-                                                    else androidx.compose.ui.graphics.Color.Red
-                                                )
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(end = 16.dp),
-                                        elevation = CardDefaults.cardElevation(4.dp)
-                                    ) {
-                                        Column(modifier = Modifier.padding(12.dp)) {
-                                            Text(
-                                                text = punt.titol,
-                                                fontSize = 18.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = if (punt.visitat.equals("si")) "Visitat" else "No visitat",
-                                                fontSize = 14.sp,
-                                                color = if (punt.visitat.equals("si")) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }*/
-
 
                 NavigationDrawerItem(
                     label = { Text("Mapa") },
@@ -324,9 +242,26 @@ fun PantallaMapa() {
     }
 }
 
+fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: List<Marker>,scope: CoroutineScope) {
+    // Tanca el Drawer
+    scope.launch {
+        drawerState.close()
+    }
+
+    // Cerca el Marker associat
+    val marker = markers.find { it.relatedObject == punt } ?: return
+
+    // Centra el mapa en aquest punt
+    val controller = mapView.controller
+    controller.animateTo(marker.position)
+
+    // Obre el seu InfoWindow
+    marker.showInfoWindow()
+}
+
 
 @Composable
-fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean) {
+fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean, scope: CoroutineScope,drawerState: DrawerState) {
     val circleColor = if (punt.visitat == "si") Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
 
     // Degradat entre el color del punt actual i el següent
@@ -375,7 +310,16 @@ fun TimelineItem(punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolea
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 16.dp)
+                .clickable {
+                    onPuntClick(
+                        punt = punt,
+                        mapView = mapa.get(0),
+                        drawerState = drawerState,
+                        markers = llistaDeMarkers,
+                        scope = scope
+                    )
+                },
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
@@ -439,7 +383,6 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
     return gson.fromJson(json, tipus)
 }*/
 
-
 @Composable
 fun OsmMapView() {
     val context = LocalContext.current
@@ -449,6 +392,7 @@ fun OsmMapView() {
 
     val mapView = MapView(context)
     val mapController = mapView.controller
+    mapa = mutableListOf(mapView)
 
     //Una vista per a veure el mapa
     AndroidView(
@@ -612,6 +556,7 @@ fun OsmMapView() {
                 }
                 marker.icon = createNumberedMarkerDrawable(context, punt.numero.toInt(), color)
                 mapView.overlays.add(marker)
+                llistaDeMarkers.add(marker)
             }
 
             // Mostrar localització de l'usuari

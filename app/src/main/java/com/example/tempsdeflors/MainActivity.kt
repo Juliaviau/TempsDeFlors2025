@@ -147,6 +147,7 @@ fun PantallaMapa() {
                                 fontSize = 20.sp,
                                 textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Bold,
+                                color = androidx.compose.ui.graphics.Color.White,
                                 modifier = Modifier
                                     .background(
                                         when (ruta) {
@@ -162,6 +163,7 @@ fun PantallaMapa() {
                                     .padding(vertical = 8.dp)
                                     .padding(horizontal = 6.dp)
                                     .wrapContentSize(Alignment.Center)
+
                             )
                         }
 

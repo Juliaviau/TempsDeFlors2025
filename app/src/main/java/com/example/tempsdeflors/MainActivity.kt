@@ -167,6 +167,7 @@ fun PantallaMapa() {
     val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
     println("puntsvisitats: " + puntsVisitats)*/
 
+
     //Menu de l'esquerra
     ModalNavigationDrawer (
         drawerState = drawerState,

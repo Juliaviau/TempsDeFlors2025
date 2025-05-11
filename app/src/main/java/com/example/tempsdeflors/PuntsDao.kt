@@ -13,7 +13,7 @@ interface PuntsDao {
     fun getAllPunts(): MutableList<PuntsEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertPunts(apunts: PuntsEntity)
+    fun insertPunts(punts: PuntsEntity)
 
     @Query("SELECT * FROM punts WHERE numero = :id")
     fun getPuntsById(id: Int): PuntsEntity?

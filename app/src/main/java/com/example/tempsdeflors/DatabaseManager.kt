@@ -6,8 +6,6 @@ import androidx.room.Room
 object DatabaseManager {
 
     private var database: AppDatabase? = null
-    private val puntsVisitats = mutableListOf<PuntsEntity>()
-
 
     fun init(context: Context) {
         if (database == null) {

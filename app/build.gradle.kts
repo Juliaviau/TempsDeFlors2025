@@ -94,6 +94,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.0")
     implementation("androidx.room:room-paging:2.6.0")
 
-
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0")
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.9.0")
+    implementation( "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.0")
+    kapt ("androidx.lifecycle:lifecycle-compiler:2.9.0")
 
 }

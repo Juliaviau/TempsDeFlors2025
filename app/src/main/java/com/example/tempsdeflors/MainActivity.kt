@@ -96,6 +96,7 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.isSystemInDarkTheme
 
 //fonts
 @OptIn(ExperimentalTextApi::class)
@@ -143,6 +144,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun esModeFosc(): androidx.compose.ui.graphics.Color {
+    return if (isSystemInDarkTheme()) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,ExperimentalPerfettoTraceProcessorApi::class)
 @Composable
@@ -175,6 +180,7 @@ fun PantallaMapa() {
                 Text("Espais",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
+                    color = esModeFosc(),
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.CenterHorizontally)
@@ -377,7 +383,8 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 Text(
                     text = punt.titol,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    color = esModeFosc()
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

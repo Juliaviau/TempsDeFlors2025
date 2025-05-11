@@ -177,6 +177,7 @@ fun PantallaMapa() {
                 //Opcions del menú
                 ModalDrawerSheet (modifier = Modifier
                     .width(if (drawerState.isOpen) 350.dp else 0.dp)
+                    .fillMaxSize()
                     .background(androidx.compose.ui.graphics.Color.Transparent)
                 ){
                     Text("Espais",
@@ -189,7 +190,7 @@ fun PantallaMapa() {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight()
+                            //.wrapContentHeight()
                             .padding(horizontal = 16.dp)
                     ) {
                         grouped.forEach { (ruta, punts) ->
@@ -211,7 +212,7 @@ fun PantallaMapa() {
                                             },
                                             shape = RoundedCornerShape(6.dp)
                                         )
-                                        .fillMaxWidth()
+                                        //.fillMaxWidth()
                                         .padding(vertical = 8.dp)
                                         .padding(horizontal = 6.dp)
                                         .wrapContentSize(Alignment.Center)
@@ -235,16 +236,14 @@ fun PantallaMapa() {
                                         puntv = PuntRepository.existeixPuntByNumero(punt.numero),
                                         nextpuntv = it
                                     )
-
                                 }
                             }
-
                         }
                     }
                 }
             }
         }
-    ) {
+    ) {//comentari
         Scaffold(
             //barra lila de sobre del mapa, que diu temps de flors i l'icona del menu
             topBar = {

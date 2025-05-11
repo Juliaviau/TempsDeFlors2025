@@ -175,7 +175,7 @@ fun PantallaMapa() {
             if (drawerState.isOpen) { //alto aqui, has quedat identificat per la policia
                 //Opcions del menú
                 ModalDrawerSheet (modifier = Modifier
-                    .width(if (drawerState.isOpen) 300.dp else 0.dp)
+                    .width(if (drawerState.isOpen) 350.dp else 0.dp)
                     .background(androidx.compose.ui.graphics.Color.Transparent)
                 ){
                     Text("Espais",

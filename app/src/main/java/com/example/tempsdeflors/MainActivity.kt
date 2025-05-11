@@ -212,7 +212,7 @@ fun PantallaMapa() {
                                             },
                                             shape = RoundedCornerShape(6.dp)
                                         )
-                                        //.fillMaxWidth()
+                                        .fillMaxWidth()
                                         .padding(vertical = 8.dp)
                                         .padding(horizontal = 6.dp)
                                         .wrapContentSize(Alignment.Center)

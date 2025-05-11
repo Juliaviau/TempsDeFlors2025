@@ -33,6 +33,6 @@ class SplashScreen : AppCompatActivity() {
             }*/
             startActivity(intent)
             finish()
-        }, 20000) // 2000 ms = 2 segons
+        }, 2000) // 2000 ms = 2 segons
     }
 }

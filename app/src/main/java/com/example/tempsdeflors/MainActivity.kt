@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -169,87 +170,77 @@ fun PantallaMapa() {
     //Menu de l'esquerra
     ModalNavigationDrawer (
         drawerState = drawerState,
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
-            //Opcions del menú
-            ModalDrawerSheet {
-                Text("Espais",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    grouped.forEach { (ruta, punts) ->
-                        stickyHeader {
-                            Text(
-                                text = "Ruta $ruta",
-                                fontSize = 20.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                color = androidx.compose.ui.graphics.Color.White,
-                                modifier = Modifier
-                                    .background(
-                                        when (ruta) {
-                                            "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
-                                            "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
-                                            "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
-                                            "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
-                                            else -> {androidx.compose.ui.graphics.Color.Gray}
-                                        },
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp)
-                                    .padding(horizontal = 6.dp)
-                                    .wrapContentSize(Alignment.Center)
-                            )
-                        }
-
-                        itemsIndexed(punts) { index, punt ->
-                            val nextPunt = punts.getOrNull(index + 1)
-                            nextPunt?.numero?.let {
-                                PuntRepository.existeixPuntByNumero(
-                                    it
-                                )
-                            }?.let {
-                                TimelineItem(
-                                    punt = punt,
-                                    nextPunt = nextPunt,
-                                    isFirst = index == 0,
-                                    isLast = index == punts.lastIndex,
-                                    scope = scope,
-                                    drawerState = drawerState,
-                                    puntv = PuntRepository.existeixPuntByNumero(punt.numero),
-                                    nextpuntv = it
+            if (drawerState.isOpen) { //alto aqui, has quedat identificat per la policia
+                //Opcions del menú
+                ModalDrawerSheet (modifier = Modifier
+                    .width(if (drawerState.isOpen) 300.dp else 0.dp)
+                    .background(androidx.compose.ui.graphics.Color.Transparent)
+                ){
+                    Text("Espais",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        grouped.forEach { (ruta, punts) ->
+                            stickyHeader {
+                                Text(
+                                    text = "Ruta $ruta",
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                    modifier = Modifier
+                                        .background(
+                                            when (ruta) {
+                                                "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
+                                                "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
+                                                "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                                "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                                else -> {androidx.compose.ui.graphics.Color.Gray}
+                                            },
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                        .padding(horizontal = 6.dp)
+                                        .wrapContentSize(Alignment.Center)
                                 )
                             }
-                        }
 
+                            itemsIndexed(punts) { index, punt ->
+                                val nextPunt = punts.getOrNull(index + 1)
+                                nextPunt?.numero?.let {
+                                    PuntRepository.existeixPuntByNumero(
+                                        it
+                                    )
+                                }?.let {
+                                    TimelineItem(
+                                        punt = punt,
+                                        nextPunt = nextPunt,
+                                        isFirst = index == 0,
+                                        isLast = index == punts.lastIndex,
+                                        scope = scope,
+                                        drawerState = drawerState,
+                                        puntv = PuntRepository.existeixPuntByNumero(punt.numero),
+                                        nextpuntv = it
+                                    )
+
+                                }
+                            }
+
+                        }
                     }
                 }
-
-                NavigationDrawerItem(
-                    label = { Text("Mapa") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("map")
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text("Sobre") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("about")
-                    }
-                )
             }
         }
     ) {
@@ -270,20 +261,12 @@ fun PantallaMapa() {
                 )
             }
         ) { innerPadding ->
-            /*Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                //Contingut de la pantalla, crida al mapa
-                OsmMapView()
-            }*/
             NavHost(
                 navController = navController,
                 startDestination = "map",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding).fillMaxSize()
             ) {
-                composable("map") { OsmMapView(/*puntsVisitats*/) }
+                composable("map") { OsmMapView(/*puntsVisitats*/drawerState,scope) }
                 composable("altre") { Altre() }
             }
         }
@@ -363,6 +346,9 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
                 .clickable {
+                    scope.launch {
+                        drawerState.close()
+                    }
                     onPuntClick(
                         punt = punt,
                         mapView = mapa.get(0),
@@ -440,18 +426,10 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
 }*/
 
 @Composable
-fun OsmMapView(/*puntsVisitats: Set<String>*/) {
+fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: CoroutineScope) {
     val context = LocalContext.current
-    //val puntsRepo = PuntsRepository(context)
-
-    //val database = AppDatabase.getInstance(context)
-    //val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
-    //val viewmodel = AppViewModel(repositoryEnlaces!!)
-    //viewmodel.carregarPuntsVisitats()
-    //val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
 
     val punts = remember { carregarPuntsDesDeJSON(context) }
-   // println("puntsvisitats: " + puntsVisitats)
 
     val mapView = MapView(context)
     val mapController = mapView.controller
@@ -467,8 +445,6 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/) {
     }
     val locationProvider = GpsMyLocationProvider(context)
     val locationOverlay = MyLocationNewOverlay(locationProvider, mapView)
-
-    //var mostrarRuta2 = remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         if (!locationPermissionState.value && activity != null) {
@@ -915,6 +891,13 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/) {
                 enableCompass()
             }
             mapView.overlays.add(compassOverlay)
+
+            mapView.setOnTouchListener{ _, _ ->
+                scope.launch {
+                    drawerState.close()
+                }
+                false
+            }
 
             mapView//aixo sempre al final
         },

@@ -1,43 +1,38 @@
 package com.example.tempsdeflors
 
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Build
+import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.PendingIntentCompat.getActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.infowindow.InfoWindow
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
 private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.getDefault()).format(this)
 
 
-class InfoPuntMarker(private val mapView: MapView) :
+class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: FotoCallback) :
     InfoWindow(R.layout.info_punt_marker, mapView) {
     val context = mapView.context
     //val database = AppDatabase.getInstance(context)
     //val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
     //val viewmodel = AppViewModel(repositoryEnlaces!!)
-
-
     //val puntsRepo = PuntsRepository(context)
 
     override fun onClose() {
@@ -46,11 +41,13 @@ class InfoPuntMarker(private val mapView: MapView) :
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onOpen(item: Any?) {
-        val marker = item as? Marker ?: return
+
+        val view = mView
+
+        val marker = item as Marker
         val punt = marker.relatedObject as? Punts ?: return
 
         val visitat = PuntRepository.existeixPuntByNumero(punt.numero) //true es que existeix
-
 
         val titleView = mView.findViewById<TextView>(R.id.title)
         val descView = mView.findViewById<TextView>(R.id.description)
@@ -58,6 +55,9 @@ class InfoPuntMarker(private val mapView: MapView) :
         val visitatButton = mView.findViewById<Button>(R.id.visitat_button)
         val ruta = mView.findViewById<TextView>(R.id.ruta)
         val visita = mView.findViewById<TextView>(R.id.visitatono)
+
+        val afegirfoto = mView.findViewById<ImageButton>(R.id.afegirFoto)
+        val foto = mView.findViewById<ImageView>(R.id.imatgepunt)
 
         val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
 
@@ -88,6 +88,25 @@ class InfoPuntMarker(private val mapView: MapView) :
                     ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.accessible))
                     visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.accessible))
                 }
+        }
+
+        if (!visitat) {
+            afegirfoto.visibility = View.GONE
+            foto.visibility = View.GONE
+        } else {
+            afegirfoto.visibility = View.VISIBLE
+            foto.visibility = View.VISIBLE
+            Glide.with(context)
+                .load(PuntRepository.getFotoUriByNumero(punt.numero))
+                .into(foto)
+
+            afegirfoto.setOnClickListener {
+                Log.i("afegirfoto", "afegirfoto")
+                punt?.let {
+                    fotoCallback.ferFoto(it.numero) // o la dada que calgui
+                }
+            }
+
         }
 
         mapView.setOnClickListener {
@@ -155,5 +174,10 @@ class InfoPuntMarker(private val mapView: MapView) :
             else -> ContextCompat.getColor(context, R.color.white)
         }
     }
+
+    fun actualitzarFoto(uri: Uri) {
+        mView?.findViewById<ImageView>(R.id.imatgepunt)?.setImageURI(uri)
+    }
+
 
 }

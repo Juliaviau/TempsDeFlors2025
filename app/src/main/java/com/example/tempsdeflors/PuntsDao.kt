@@ -27,4 +27,10 @@ interface PuntsDao {
     @Query("SELECT EXISTS(SELECT 1 FROM punts WHERE numero = :numero)")
     suspend fun existeixPuntByNumero(numero: String): Boolean
 
+    @Query("UPDATE punts SET fotoUri = :uri WHERE numero = :numero")
+    fun updateFotoUri(numero: String, uri: String)
+
+    @Query("SELECT fotoUri FROM punts WHERE numero = :numero")
+    fun getFotoUriByNumero(numero: String): String?
+
 }

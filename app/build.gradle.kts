@@ -100,4 +100,16 @@ dependencies {
     implementation( "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.0")
     kapt ("androidx.lifecycle:lifecycle-compiler:2.9.0")
 
+    //camera
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.compose)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.accompanist.permissions)
+    implementation ("androidx.activity:activity-ktx:1.10.1")
+
+    implementation("dev.chrisbanes.accompanist:accompanist-glide:0.4.2")
+
+
+
 }

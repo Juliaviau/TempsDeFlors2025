@@ -4,18 +4,25 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
+import android.util.Log
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.benchmark.perfetto.ExperimentalPerfettoTraceProcessorApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -42,6 +49,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
@@ -75,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -94,6 +103,8 @@ import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -136,6 +147,16 @@ class MainActivity : ComponentActivity() {
         PuntRepository.init(this)
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
 
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                Log.i("Permission: ", "Granted")
+            } else {
+                Log.i("Permission: ", "Denied")
+            }
+        }
+
         setContent {
             TempsDeFlorsTheme {
                 PantallaMapa()
@@ -159,14 +180,6 @@ fun PantallaMapa() {
     val punts = remember { carregarPuntsDesDeJSON(context)}
     val grouped = punts.groupBy { it.ruta }
     val listState = rememberLazyListState()
-
-    /*val database = AppDatabase.getInstance(context)
-    val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
-    val viewmodel = AppViewModel(repositoryEnlaces!!)
-    viewmodel.carregarPuntsVisitats()
-    val puntsVisitats by viewmodel.puntsVisitats.collectAsState()
-    println("puntsvisitats: " + puntsVisitats)*/
-
 
     //Menu de l'esquerra
     ModalNavigationDrawer (
@@ -204,11 +217,25 @@ fun PantallaMapa() {
                                     modifier = Modifier
                                         .background(
                                             when (ruta) {
-                                                "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
-                                                "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
-                                                "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
-                                                "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
-                                                else -> {androidx.compose.ui.graphics.Color.Gray}
+                                                "1" -> {
+                                                    androidx.compose.ui.graphics.Color(0xFF00a80d)
+                                                }
+
+                                                "2" -> {
+                                                    androidx.compose.ui.graphics.Color(0xFF7d007d)
+                                                }
+
+                                                "3" -> {
+                                                    androidx.compose.ui.graphics.Color(0xFF004988)
+                                                }
+
+                                                "ACCESSIBLE" -> {
+                                                    androidx.compose.ui.graphics.Color.Gray
+                                                }
+
+                                                else -> {
+                                                    androidx.compose.ui.graphics.Color.Gray
+                                                }
                                             },
                                             shape = RoundedCornerShape(6.dp)
                                         )
@@ -264,7 +291,9 @@ fun PantallaMapa() {
             NavHost(
                 navController = navController,
                 startDestination = "map",
-                modifier = Modifier.padding(innerPadding).fillMaxSize()
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
                 composable("map") { OsmMapView(/*puntsVisitats*/drawerState,scope) }
                 composable("altre") { Altre() }
@@ -284,10 +313,31 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
 
     // Centra el mapa en aquest punt
     val controller = mapView.controller
-    controller.animateTo(marker.position)
+
+
+    val desplaçament = 0.002  // Ajusta segons el teu zoom
+    val posicioDesplaçada = GeoPoint(marker.position.latitude - desplaçament, marker.position.longitude)
+
+    // Anima la càmera
+    mapView.controller.animateTo(posicioDesplaçada)
+
+    // Mostra l'InfoWindow després d’un petit delay per assegurar el moviment
+    Handler(Looper.getMainLooper()).postDelayed({
+        marker.showInfoWindow()
+    }, 300)
+
+    //controller.animateTo(marker.position)
 
     // Obre el seu InfoWindow
     marker.showInfoWindow()
+}
+
+fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.002) {
+    val target = GeoPoint(position.latitude - offset, position.longitude)
+    mapView.controller.animateTo(target)
+    Handler(Looper.getMainLooper()).postDelayed({
+        this.showInfoWindow()
+    }, 300)
 }
 
 
@@ -383,52 +433,62 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
     return gson.fromJson(json, tipus)
 }
 
-
 @Composable
 fun Altre() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("App de Temps de Flors!")
     }
 }
-/*
-fun copyJsonIfNeeded(context: Context) {
-    val file = File(context.filesDir, "punts.json")
-    if (!file.exists()) {
-        val asset = context.assets.open("punts.json")
-        file.outputStream().use { asset.copyTo(it) }
-    }
+
+fun crearUriDeFoto(context: Context): Uri {
+    val fotoFile = File(
+        context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+        "foto_${System.currentTimeMillis()}.jpg"
+    )
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        fotoFile
+    )
 }
 
-fun marcarPuntComVisitat(context: Context, numero: String) {
-    val punts = carregarPuntsDesDeJSON(context)
-
-    val punt = punts.find { it.numero == numero }
-    punt?.let {
-        it.visitat = "si"
-        guardarPunts(context, punts)
-    }
-}
-
-fun guardarPunts(context: Context, punts: List<Punts>) {
-    val file = File(context.filesDir, "punts.json")
-    val json = Gson().toJson(punts)
-    file.writeText(json)
-}
-
-
-fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
-   // val json = context.assets.open("punts.json").bufferedReader().use { it.readText() }
-    val file = File(context.filesDir, "punts.json")
-    val json = file.readText()
-    val gson = Gson()
-    val tipus = object : TypeToken<MutableList<Punts>>() {}.type
-    return gson.fromJson(json, tipus)
-}*/
 
 @Composable
 fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: CoroutineScope) {
     val context = LocalContext.current
 
+    val uriFoto = remember { mutableStateOf<Uri?>(null) }
+    val fotoCallbackRef = remember { mutableStateOf<FotoCallback?>(null) }
+    val idpunturi = remember { mutableStateOf<String?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            // Foto feta correctament, pots guardar o mostrar la URI
+            uriFoto.value?.let { uri ->
+                fotoCallbackRef.value?.onFotoFeta(idpunturi.value!!, uri)  // Si tens l'ID aquí
+            }
+            Log.i("Foto", "Foto feta correctament")
+        }
+    }
+
+    val fotoCallback = object : FotoCallback {
+        override fun ferFoto(puntId: String) {
+            val uri = crearUriDeFoto(context) // Crea la URI
+            idpunturi.value = puntId // Guarda l'ID del punt
+            uriFoto.value = uri // Guarda la URI
+            //fotoUriPerPuntId[puntId] = uri  // Guarda-la
+            cameraLauncher.launch(uri)
+        }
+
+        override fun onFotoFeta(puntId: String, uri: Uri) {
+            // 1. Desa la URI a la base de dades:
+            PuntRepository.updateFotoUri(puntId, uri.toString())
+            // 2. Notifica la vista (opcional si la vols refrescar en temps real)
+        }
+    }
+    LaunchedEffect(Unit) {
+        fotoCallbackRef.value = fotoCallback
+    }
     val punts = remember { carregarPuntsDesDeJSON(context) }
 
     val mapView = MapView(context)
@@ -443,14 +503,23 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+    val cameraPermissionState = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
     val locationProvider = GpsMyLocationProvider(context)
     val locationOverlay = MyLocationNewOverlay(locationProvider, mapView)
 
     LaunchedEffect(Unit) {
-        if (!locationPermissionState.value && activity != null) {
+        if (!locationPermissionState.value && activity != null && !cameraPermissionState.value) {
             ActivityCompat.requestPermissions(
                 activity,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.CAMERA),
                 1001
             )
         } else {
@@ -460,6 +529,10 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
 
     if (!locationPermissionState.value) {
         Text("Cal activar el permís de localització.")
+    }
+
+    if (!cameraPermissionState.value) {
+        Text("Cal activar el permís de camera.")
     }
 
     //Una vista per a veure el mapa
@@ -854,8 +927,9 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
                 marker.snippet = punt.snippet
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 marker.relatedObject = punt
-                val infoWindow = InfoPuntMarker(mapView)
+                val infoWindow = InfoPuntMarker(mapView, fotoCallback )
                 marker.infoWindow = infoWindow
+                marker.showInfoWindowCentered(mapView)
 
                 when (punt.ruta) {
                     "1" -> {
@@ -902,7 +976,6 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
             mapView//aixo sempre al final
         },
         modifier = Modifier.fillMaxSize()
-
     )
 
     Box(
@@ -948,6 +1021,16 @@ fun startLocationOverlay(locationOverlay: MyLocationNewOverlay,locationProvider:
     mapView.overlays.add(locationOverlay)
 }
 
+fun reduirMida(uri: Uri, context: Context): ByteArray {
+    val inputStream = context.contentResolver.openInputStream(uri)
+    val originalBitmap = BitmapFactory.decodeStream(inputStream)
+
+    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 800, 600, true) // Redueix la mida
+
+    val stream = ByteArrayOutputStream()
+    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, stream) // Qualitat al 60%
+    return stream.toByteArray()
+}
 
 fun createNumberedMarkerDrawable(context: Context, number: Int, colorp: Int): Drawable {
     val width = 100

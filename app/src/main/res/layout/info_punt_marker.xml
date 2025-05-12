@@ -1,4 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="12dp"
     android:layout_width="wrap_content"
@@ -62,11 +64,18 @@
             android:justificationMode="inter_word"
             android:text="Snippet molt llarg que hauria d’ajustar-se a l’amplada i fer salt de línia automàtic." />
 
+        <ImageView
+            android:id="@+id/imatgepunt"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_below="@id/snippet"
+            tools:srcCompat="@drawable/f2514" />
+
         <LinearLayout
             android:id="@+id/button_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/snippet"
+            android:layout_below="@id/imatgepunt"
             android:layout_marginTop="8dp"
             android:orientation="horizontal"
             android:gravity="center">
@@ -78,8 +87,15 @@
                 android:backgroundTint="@android:color/holo_blue_light"
                 android:text="Marcar com a visitat"
                 android:textColor="@android:color/white" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/baseline_add_a_photo_24"
+                android:backgroundTint="@color/ruta2"
+                android:layout_marginLeft="8dp"
+                android:id="@+id/afegirFoto" />
+
         </LinearLayout>
-
     </RelativeLayout>
-
 </LinearLayout>

@@ -1,6 +1,8 @@
 package com.example.tempsdeflors
 
 import android.content.Context
+import android.util.Log
+import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,6 +21,19 @@ object PuntRepository {
     fun getPuntByNumero(numero: String): PuntsEntity? {
         return synchronized(puntsVisitats) {
             puntsVisitats.find { it.numero == numero }
+        }
+    }
+
+    fun updateFotoUri(numero: String, uri: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            database.puntsDao()?.updateFotoUri(numero, uri)
+            Log.i("PuntRepository", "foto actualitzada per $numero a $uri")
+        }
+    }
+
+    fun getFotoUriByNumero(numero: String): String? {
+        return synchronized(puntsVisitats) {
+            puntsVisitats.find { it.numero == numero }?.fotoUri
         }
     }
 

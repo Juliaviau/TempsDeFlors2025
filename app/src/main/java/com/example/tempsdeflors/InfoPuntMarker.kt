@@ -21,6 +21,14 @@ import kotlinx.coroutines.withContext
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.infowindow.InfoWindow
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+
+private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.getDefault()).format(this)
+
 
 class InfoPuntMarker(private val mapView: MapView) :
     InfoWindow(R.layout.info_punt_marker, mapView) {
@@ -51,10 +59,15 @@ class InfoPuntMarker(private val mapView: MapView) :
         val ruta = mView.findViewById<TextView>(R.id.ruta)
         val visita = mView.findViewById<TextView>(R.id.visitatono)
 
+        val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
         titleView.text = marker.title
         descView.text = marker.subDescription
         subDescView.text = marker.snippet
-        visita.text = if (/*punt.visitat.equals("no")*/!visitat) "No visitat" else "Visitat a " + punt.data
+        visita.text = if (/*punt.visitat.equals("no")*/!visitat) "No visitat" else "Visitat a " + simpleDateFormat.format(
+            PuntRepository.getDataByNumero(punt.numero)?.toLong() ?:
+            System.currentTimeMillis()
+        )
         visitatButton.text = if (/*punt.visitat.equals("no")*/!visitat) "Marcar com a visitat" else "Eliminar de visitats"
         ruta.text = "RUTA " + punt.ruta
 

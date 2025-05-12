@@ -22,6 +22,12 @@ object PuntRepository {
         }
     }
 
+    fun getDataByNumero(numero: String): String? {
+        return synchronized(puntsVisitats) {
+            puntsVisitats.find { it.numero == numero }?.data
+        }
+    }
+
     private fun carregarPuntsVisitats() {
         CoroutineScope(Dispatchers.IO).launch {
             val punts = database.puntsDao()?.getAllPunts() ?: mutableListOf()

@@ -110,6 +110,4 @@ dependencies {
 
     implementation("dev.chrisbanes.accompanist:accompanist-glide:0.4.2")
 
-
-
 }

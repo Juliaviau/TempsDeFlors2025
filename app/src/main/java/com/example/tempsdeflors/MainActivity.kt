@@ -131,11 +131,7 @@ fun lletraModeFosc() : androidx.compose.ui.graphics.Color{
 
 @Composable
 fun backgroundModeFosc(): androidx.compose.ui.graphics.Color {
-    return if (isSystemInDarkTheme()) {
-        Color(0xFF1E1E1E) // Color oscuro
-    } else {
-        Color(0xFFFCFAED) // Color claro
-    }
+    return if (isSystemInDarkTheme()) { Color(0xFF1E1E1E) } else {Color(0xFFFCFAED) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,ExperimentalPerfettoTraceProcessorApi::class)
@@ -149,15 +145,13 @@ fun PantallaMapa() {
 
     val punts = remember { carregarPuntsDesDeJSON(context)}
     val grouped = punts.groupBy { it.ruta }
-    val listState = rememberLazyListState()
 
     //Menu de l'esquerra
     ModalNavigationDrawer (
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
         drawerContent = {
-            if (drawerState.isOpen) { //alto aqui, has quedat identificat per la policia
-                //Opcions del menú
+            if (drawerState.isOpen) {
                 ModalDrawerSheet (modifier = Modifier
                     .width(if (drawerState.isOpen) 350.dp else 0.dp)
                     .fillMaxSize()
@@ -174,7 +168,6 @@ fun PantallaMapa() {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            //.wrapContentHeight()
                             .padding(horizontal = 16.dp)
                     ) {
                         grouped.forEach { (ruta, punts) ->
@@ -202,15 +195,12 @@ fun PantallaMapa() {
                                         .wrapContentSize(Alignment.Center)
                                 )
                             }
-
                             itemsIndexed(punts) { index, punt ->
                                 val nextPunt = punts.getOrNull(index + 1)
                                 val puntv = PuntRepository.existeixPuntByNumero(punt.numero) ?: false
                                 val nextpuntv = nextPunt?.numero?.let { PuntRepository.existeixPuntByNumero(it) } ?: false
-
                                 TimelineItem(
                                     punt = punt,
-                                    nextPunt = nextPunt,
                                     isFirst = index == 0,
                                     isLast = index == punts.lastIndex,
                                     scope = scope,
@@ -248,7 +238,7 @@ fun PantallaMapa() {
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                composable("map") { OsmMapView(drawerState,scope) }
+                composable("map") { OsmMapView() }
             }
         }
     }
@@ -275,16 +265,8 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
     }, 30)
 }
 
-fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.014) {
-    val target = GeoPoint(position.latitude + offset, position.longitude)
-    mapView.controller.animateTo(target)
-    Handler(Looper.getMainLooper()).postDelayed({
-        this.showInfoWindow()
-    }, 30)
-}
-
 @Composable
-fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean,
+fun TimelineItem( punt: Punts, isFirst: Boolean, isLast: Boolean,
     scope: CoroutineScope, drawerState: DrawerState, puntv: Boolean, nextpuntv: Boolean) {
     val circleColor = if (/*punt.visitat == "si"*/puntv) Color(0xFF4CAF50) else Color(0xFFF44336) // Verd o vermell
 
@@ -292,7 +274,7 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
     val lineGradient = Brush.verticalGradient(
         colors = listOf(
             circleColor,
-            if (/*nextPunt?.visitat == "si"*/nextpuntv) Color(0xFF4CAF50) else Color(0xFFF44336)
+            if (nextpuntv) Color(0xFF4CAF50) else Color(0xFFF44336)
         )
     )
 
@@ -338,9 +320,6 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
                 .clickable {
-                    /*scope.launch {
-                        drawerState.close()
-                    }*/
                     onPuntClick(
                         punt = punt,
                         mapView = mapa.get(0),
@@ -360,7 +339,7 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (/*punt.visitat == "si"*/puntv) "Visitat" else "No visitat",
+                    text = if (puntv) "Visitat" else "No visitat",
                     fontSize = 16.sp,
                     color = circleColor
                 )
@@ -390,7 +369,7 @@ fun crearUriDeFoto(context: Context): Uri {
 
 
 @Composable
-fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
+fun OsmMapView() {
     val context = LocalContext.current
 
     val uriFoto = remember { mutableStateOf<Uri?>(null) }
@@ -476,7 +455,7 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
                 1001
             )
         } else {
-            startLocationOverlay(locationOverlay, locationProvider,mapView)
+            startLocationOverlay(locationOverlay, mapView)
         }
     }
 
@@ -875,7 +854,6 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
 
                 val infoWindow = InfoPuntMarker(mapView, fotoCallback)
                 marker.infoWindow = infoWindow
-                //marker.showInfoWindowCentered(mapView)
 
                 when (punt.ruta) {
                     "1" -> {
@@ -912,7 +890,6 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
             }
             mapView.overlays.add(compassOverlay)
 
-
             val isDarkTheme = (context.resources.configuration.uiMode and
                     android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
@@ -926,15 +903,7 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
                 mapView.getOverlayManager().getTilesOverlay().setColorFilter(null);
             }
 
-
-            /*mapView.setOnTouchListener{ _, _ ->
-                scope.launch {
-                    drawerState.close()
-                }
-                false
-            }*/
-
-            mapView//aixo sempre al final
+            mapView
         },
         modifier = Modifier.fillMaxSize()
     )
@@ -979,7 +948,7 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
     }
 }
 
-fun startLocationOverlay(locationOverlay: MyLocationNewOverlay,locationProvider: GpsMyLocationProvider,mapView: MapView) {
+fun startLocationOverlay(locationOverlay: MyLocationNewOverlay,mapView: MapView) {
 
     locationOverlay.enableMyLocation()
     locationOverlay.enableFollowLocation()
@@ -994,17 +963,6 @@ fun startLocationOverlay(locationOverlay: MyLocationNewOverlay,locationProvider:
     }
 
     mapView.overlays.add(locationOverlay)
-}
-
-fun reduirMida(uri: Uri, context: Context): ByteArray {
-    val inputStream = context.contentResolver.openInputStream(uri)
-    val originalBitmap = BitmapFactory.decodeStream(inputStream)
-
-    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 800, 600, true) // Redueix la mida
-
-    val stream = ByteArrayOutputStream()
-    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, stream) // Qualitat al 60%
-    return stream.toByteArray()
 }
 
 fun comprimirImatge(uri: Uri, context: Context): Uri? {

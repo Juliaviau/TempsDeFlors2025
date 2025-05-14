@@ -59,10 +59,6 @@ object PuntRepository {
         }
     }
 
-    fun actualitzarPunts() {
-        carregarPuntsVisitats()
-    }
-
     private fun carregarPuntsVisitats() {
         CoroutineScope(Dispatchers.IO).launch {
             val punts = database.puntsDao()?.getAllPunts() ?: mutableListOf()

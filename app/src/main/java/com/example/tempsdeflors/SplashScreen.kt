@@ -25,14 +25,8 @@ class SplashScreen : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             // Canvia de pantalla
             val intent = Intent(this, MainActivity::class.java)
-
-            /*val intent = if (savedPin  == null) {
-                Intent(this, SetPasswordActivity::class.java)
-            } else {
-                Intent(this, LoginActivity::class.java)
-            }*/
             startActivity(intent)
             finish()
-        }, 2000) // 2000 ms = 2 segons
+        }, 1200) // 2000 ms = 2 segons
     }
 }

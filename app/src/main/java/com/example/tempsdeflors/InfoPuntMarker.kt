@@ -100,7 +100,6 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
                 .load(PuntRepository.getFotoUriByNumero(punt.numero))
                 .into(foto)
             afegirfoto.visibility = View.VISIBLE
-            //foto.visibility = View.VISIBLE
             afegirfoto.setOnClickListener {
                 punt?.let {
                     fotoCallback.ferFoto(it.numero) {uri ->

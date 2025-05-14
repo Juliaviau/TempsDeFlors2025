@@ -999,7 +999,7 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
     ) {
         Text(
             text = puntsVisitats.toString()+"/114",
-            color = androidx.compose.ui.graphics.Color.Black,
+            color = esModeFosc(),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.background(Color(0xFFFCFAED), shape = CircleShape).padding(10.dp)

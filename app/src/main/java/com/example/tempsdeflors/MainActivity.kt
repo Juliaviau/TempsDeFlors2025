@@ -1,6 +1,7 @@
 package com.example.tempsdeflors
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -17,6 +18,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
@@ -100,6 +102,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.TilesOverlay
 import org.osmdroid.views.overlay.compass.CompassOverlay
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
@@ -108,6 +111,8 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -178,8 +183,6 @@ fun PantallaMapa() {
     val navController = rememberNavController()
 
     val context = LocalContext.current
-    //val puntsRepo = PuntsRepository(context)
-    //puntsRepo.inicialitzarSiCal()
 
     val punts = remember { carregarPuntsDesDeJSON(context)}
     val grouped = punts.groupBy { it.ruta }
@@ -272,7 +275,6 @@ fun PantallaMapa() {
                             Icon(Icons.Default.Menu, contentDescription = "Obrir el menú")
                         }
                     },
-
                 )
             }
         ) { innerPadding ->
@@ -283,29 +285,11 @@ fun PantallaMapa() {
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                composable("map") { OsmMapView(/*puntsVisitats*/drawerState,scope) }
-                composable("altre") { Altre() }
+                composable("map") { OsmMapView(drawerState,scope) }
             }
         }
     }
 }
-/*
-fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: List<Marker>,scope: CoroutineScope) {
-    // Tanca el Drawer
-    scope.launch {
-        drawerState.close()
-    }
-
-    // Cerca el Marker associat
-    val marker = markers.find { it.relatedObject == punt } ?: return
-
-    // Centra el mapa en aquest punt
-    val controller = mapView.controller
-    controller.animateTo(marker.position)
-
-    // Obre el seu InfoWindow
-    marker.showInfoWindow()
-}*/
 
 fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: List<Marker>,scope: CoroutineScope) {
     // Tanca el Drawer
@@ -315,10 +299,6 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
 
     // Cerca el Marker associat
     val marker = markers.find { it.relatedObject == punt } ?: return
-
-    // Centra el mapa en aquest punt
-    val controller = mapView.controller
-
 
     val desplaçament = 0.014  // Ajusta segons el teu zoom
     val posicioDesplaçada = GeoPoint(marker.position.latitude + desplaçament, marker.position.longitude)
@@ -330,11 +310,6 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
     Handler(Looper.getMainLooper()).postDelayed({
         marker.showInfoWindow()
     }, 30)
-
-    //controller.animateTo(marker.position)
-
-    // Obre el seu InfoWindow
-    //marker.showInfoWindow()
 }
 
 fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.014) {
@@ -344,7 +319,6 @@ fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.014) {
         this.showInfoWindow()
     }, 30)
 }
-
 
 @Composable
 fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boolean,
@@ -439,13 +413,6 @@ fun carregarPuntsDesDeJSON(context: Context): MutableList<Punts> {
     return gson.fromJson(json, tipus)
 }
 
-@Composable
-fun Altre() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("App de Temps de Flors!")
-    }
-}
-
 fun crearUriDeFoto(context: Context): Uri {
     val fotoFile = File(
         context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
@@ -491,9 +458,19 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
         }
 
         override fun onFotoFeta(puntId: String, uri: Uri) {
-            // 1. Desa la URI a la base de dades:
-            PuntRepository.updateFotoUri(puntId, uri.toString())
-            // 2. Notifica la vista (opcional si la vols refrescar en temps real)
+            // 1. Comprimir la imatge
+            val compressedUri = comprimirImatge(uri, context)
+
+            // 2. Desa la URI comprimida a la base de dades:
+            if (compressedUri != null) {
+                PuntRepository.updateFotoUri(puntId, compressedUri.toString())
+
+                // 3. Guarda la imatge a la galeria
+                guardarImatgeAlSistema(context, compressedUri)
+
+                // 4. Notifica la vista (opcional si la vols refrescar en temps real)
+                Log.i("Foto", "Imatge guardada correctament a la galeria")
+            }
         }
     }
 
@@ -972,6 +949,21 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
             }
             mapView.overlays.add(compassOverlay)
 
+
+            val isDarkTheme = (context.resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+            if(isDarkTheme) {
+                mapView.overlayManager.tilesOverlay.apply {
+                    setColorFilter(TilesOverlay.INVERT_COLORS)
+                    loadingBackgroundColor = android.R.color.black
+                    loadingLineColor = Color.argb(255, 0, 255, 0)
+                }
+            } else {
+                mapView.getOverlayManager().getTilesOverlay().setColorFilter(null);
+            }
+
+
             /*mapView.setOnTouchListener{ _, _ ->
                 scope.launch {
                     drawerState.close()
@@ -983,7 +975,6 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
         },
         modifier = Modifier.fillMaxSize()
     )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1052,6 +1043,57 @@ fun reduirMida(uri: Uri, context: Context): ByteArray {
     scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, stream) // Qualitat al 60%
     return stream.toByteArray()
 }
+
+fun comprimirImatge(uri: Uri, context: Context): Uri? {
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+    val bitmap = BitmapFactory.decodeStream(inputStream)
+
+    // Redimensionar la imatge a un tamany més petit (exemple: 800x600 píxels)
+    val width = 800
+    val height = (bitmap.height * (width.toFloat() / bitmap.width.toFloat())).toInt()
+
+    val compressedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false)
+
+    // Crear un fitxer temporal per guardar la imatge comprimida
+    val file = File(context.cacheDir, "compressed_image.jpg")
+    val outputStream = FileOutputStream(file)
+
+    // Comprimir la imatge (el format pot ser JPEG, PNG, etc. i pots especificar la qualitat)
+    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // 80 és la qualitat (1-100)
+
+    outputStream.flush()
+    outputStream.close()
+
+    // Retornar el URI del fitxer comprimit
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
+}
+
+fun guardarImatgeAlSistema(context: Context, compressedUri: Uri) {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "foto_${System.currentTimeMillis()}.jpg")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES) // Aquesta línia fa que es guardi a la carpeta "Pictures"
+    }
+
+    val resolver = context.contentResolver
+    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+    if (uri != null) {
+        val inputStream = context.contentResolver.openInputStream(compressedUri)
+        val outputStream = context.contentResolver.openOutputStream(uri)
+
+        inputStream?.copyTo(outputStream!!)
+        inputStream?.close()
+        if (outputStream != null) {
+            outputStream.close()
+        }
+    }
+}
+
 
 fun createNumberedMarkerDrawable(context: Context, number: Int, colorp: Int): Drawable {
     val width = 100

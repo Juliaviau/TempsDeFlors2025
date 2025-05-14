@@ -3,20 +3,31 @@ package com.example.tempsdeflors
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.State
 
 object PuntRepository {
 
     private lateinit var database: AppDatabase
     private val puntsVisitats = mutableListOf<PuntsEntity>()
 
+    private val _quantitatDePunts = mutableStateOf(0)
+    val quantitatDePunts: State<Int> get() = _quantitatDePunts
+
     fun init(context: Context) {
         database = AppDatabase.getInstance(context) ?: throw IllegalStateException("No DB")
         carregarPuntsVisitats()
     }
+
+
+
 
     fun getPuntByNumero(numero: String): PuntsEntity? {
         return synchronized(puntsVisitats) {
@@ -43,12 +54,17 @@ object PuntRepository {
         }
     }
 
+    fun actualitzarPunts() {
+        carregarPuntsVisitats()
+    }
+
     private fun carregarPuntsVisitats() {
         CoroutineScope(Dispatchers.IO).launch {
             val punts = database.puntsDao()?.getAllPunts() ?: mutableListOf()
             synchronized(puntsVisitats) {
                 puntsVisitats.clear()
                 puntsVisitats.addAll(punts.filter { it.visitat == "si" })
+                _quantitatDePunts.value = puntsVisitats.size
             }
         }
     }
@@ -72,6 +88,7 @@ object PuntRepository {
             synchronized(puntsVisitats) {
                 if (puntsVisitats.none { it.numero == punt.numero }) {
                     puntsVisitats.add(punt.copy(visitat = "si"))
+                    carregarPuntsVisitats()
                 }
             }
         }
@@ -82,6 +99,7 @@ object PuntRepository {
             database.puntsDao()?.deleteApuntsByNumero(punt)
             synchronized(puntsVisitats) {
                 puntsVisitats.remove(getPuntByNumero(punt))
+                carregarPuntsVisitats()
             }
         }
     }

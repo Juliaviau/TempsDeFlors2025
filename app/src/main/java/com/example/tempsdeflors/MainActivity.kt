@@ -206,25 +206,11 @@ fun PantallaMapa() {
                                     modifier = Modifier
                                         .background(
                                             when (ruta) {
-                                                "1" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF00a80d)
-                                                }
-
-                                                "2" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF7d007d)
-                                                }
-
-                                                "3" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF004988)
-                                                }
-
-                                                "ACCESSIBLE" -> {
-                                                    androidx.compose.ui.graphics.Color.Gray
-                                                }
-
-                                                else -> {
-                                                    androidx.compose.ui.graphics.Color.Gray
-                                                }
+                                                "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
+                                                "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
+                                                "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                                "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                                else -> {androidx.compose.ui.graphics.Color.Gray}
                                             },
                                             shape = RoundedCornerShape(6.dp)
                                         )
@@ -259,7 +245,7 @@ fun PantallaMapa() {
                 }
             }
         }
-    ) {//comentari
+    ) {
         Scaffold(
             //barra lila de sobre del mapa, que diu temps de flors i l'icona del menu
             topBar = {
@@ -986,6 +972,22 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
                 contentDescription = "Centrar ubicació"
             )
         }
+    }
+
+    val puntsVisitats by PuntRepository.quantitatDePunts
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomStart
+    ) {
+        Text(
+            text = puntsVisitats.toString()+"/114",
+            color = androidx.compose.ui.graphics.Color.Black,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.background(Color(0xFFFCFAED), shape = CircleShape).padding(10.dp)
+        )
     }
 }
 

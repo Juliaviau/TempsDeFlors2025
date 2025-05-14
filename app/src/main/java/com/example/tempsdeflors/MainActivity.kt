@@ -140,23 +140,12 @@ val kalnia = FontFamily(
 */
 val llistaDeMarkers = mutableListOf<Marker>()
 var mapa = mutableListOf<MapView>()
-private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.getDefault()).format(this)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PuntRepository.init(this)
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
-
-        val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                Log.i("Permission: ", "Granted")
-            } else {
-                Log.i("Permission: ", "Denied")
-            }
-        }
 
         setContent {
             TempsDeFlorsTheme {
@@ -222,25 +211,11 @@ fun PantallaMapa() {
                                     modifier = Modifier
                                         .background(
                                             when (ruta) {
-                                                "1" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF00a80d)
-                                                }
-
-                                                "2" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF7d007d)
-                                                }
-
-                                                "3" -> {
-                                                    androidx.compose.ui.graphics.Color(0xFF004988)
-                                                }
-
-                                                "ACCESSIBLE" -> {
-                                                    androidx.compose.ui.graphics.Color.Gray
-                                                }
-
-                                                else -> {
-                                                    androidx.compose.ui.graphics.Color.Gray
-                                                }
+                                                "1" -> {androidx.compose.ui.graphics.Color(0xFF00a80d)}
+                                                "2" -> {androidx.compose.ui.graphics.Color(0xFF7d007d)}
+                                                "3" -> {androidx.compose.ui.graphics.Color(0xFF004988)}
+                                                "ACCESSIBLE" -> {androidx.compose.ui.graphics.Color.Gray}
+                                                else -> {androidx.compose.ui.graphics.Color.Gray}
                                             },
                                             shape = RoundedCornerShape(6.dp)
                                         )
@@ -272,7 +247,7 @@ fun PantallaMapa() {
                 }
             }
         }
-    ) {//comentari
+    ) {
         Scaffold(
             //barra lila de sobre del mapa, que diu temps de flors i l'icona del menu
             topBar = {
@@ -489,14 +464,18 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
             // 2. Notifica la vista (opcional si la vols refrescar en temps real)
         }
     }
+
     LaunchedEffect(Unit) {
         fotoCallbackRef.value = fotoCallback
     }
+
     val punts = remember { carregarPuntsDesDeJSON(context) }
 
     val mapView = MapView(context)
     val mapController = mapView.controller
+
     mapa = mutableListOf(mapView)
+
     val activity = context as? Activity
     val locationPermissionState = remember {
         mutableStateOf(
@@ -521,8 +500,7 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
         if (!locationPermissionState.value && activity != null && !cameraPermissionState.value) {
             ActivityCompat.requestPermissions(
                 activity,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.CAMERA),
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,android.Manifest.permission.CAMERA),
                 1001
             )
         } else {
@@ -530,13 +508,9 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
         }
     }
 
-    if (!locationPermissionState.value) {
-        Text("Cal activar el permís de localització.")
-    }
+    if (!locationPermissionState.value) {Text("Cal activar el permís de localització.")}
 
-    if (!cameraPermissionState.value) {
-        Text("Cal activar el permís de camera.")
-    }
+    if (!cameraPermissionState.value) {Text("Cal activar el permís de camera.")}
 
     //Una vista per a veure el mapa
     AndroidView(
@@ -897,15 +871,11 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
             )
 
             val polyline2 = Polyline()
-            //if (mostrarRuta2.value) {
-                polyline2.setPoints(ruta2Coords)
-                polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
-                polyline2.getPaint().setStrokeCap(Paint.Cap.ROUND);
-                polyline2.width = 8.0f // gruix de la línia
-                mapView.overlays.add(polyline2)
-            /*} else {
-                mapView.overlays.remove(polyline2)
-            }*/
+            polyline2.setPoints(ruta2Coords)
+            polyline2.setColor(Color.rgb(125, 0, 125)) // Color lila
+            polyline2.getPaint().setStrokeCap(Paint.Cap.ROUND);
+            polyline2.width = 8.0f // gruix de la línia
+            mapView.overlays.add(polyline2)
 
             val polyline3 = Polyline()
             polyline3.setPoints(ruta3Coords)
@@ -930,7 +900,8 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
                 marker.snippet = punt.snippet
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 marker.relatedObject = punt
-                val infoWindow = InfoPuntMarker(mapView, fotoCallback )
+
+                val infoWindow = InfoPuntMarker(mapView, fotoCallback)
                 marker.infoWindow = infoWindow
                 marker.showInfoWindowCentered(mapView)
 
@@ -1004,6 +975,22 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
                 contentDescription = "Centrar ubicació"
             )
         }
+    }
+
+    val puntsVisitats by PuntRepository.quantitatDePunts
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomStart
+    ) {
+        Text(
+            text = puntsVisitats.toString()+"/114",
+            color = androidx.compose.ui.graphics.Color.Black,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.background(Color(0xFFFCFAED), shape = CircleShape).padding(10.dp)
+        )
     }
 }
 

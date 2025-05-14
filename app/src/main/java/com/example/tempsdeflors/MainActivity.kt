@@ -18,6 +18,7 @@ import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
 import android.util.Log
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -37,6 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,6 +50,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
@@ -58,10 +61,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,10 +103,14 @@ import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.compass.CompassOverlay
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
+import org.osmdroid.views.overlay.infowindow.InfoWindow
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 //fonts
 @OptIn(ExperimentalTextApi::class)
@@ -1010,8 +1019,7 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
         Text(
             text = puntsVisitats.toString()+"/114",
             color = lletraModeFosc(),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
             modifier = Modifier.background(backgroundModeFosc(), shape = CircleShape).padding(10.dp)
         )
     }

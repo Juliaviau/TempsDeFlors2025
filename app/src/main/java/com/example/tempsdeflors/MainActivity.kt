@@ -3,6 +3,7 @@ package com.example.tempsdeflors
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -20,7 +21,6 @@ import android.os.Looper
 import android.preference.PreferenceManager
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -40,7 +40,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -52,7 +51,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerState
@@ -63,12 +61,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -106,45 +102,12 @@ import org.osmdroid.views.overlay.TilesOverlay
 import org.osmdroid.views.overlay.compass.CompassOverlay
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
-import org.osmdroid.views.overlay.infowindow.InfoWindow
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
-//fonts
-@OptIn(ExperimentalTextApi::class)
-/*val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
-
-val poppinsFont = FontFamily(
-    Font(
-        googleFont = GoogleFont("Poppins"),
-        fontProvider = provider
-    )
-)
-
-val caveat = FontFamily(
-    Font(
-        googleFont = GoogleFont("Caveat"),
-        fontProvider = provider
-    )
-)
-
-val kalnia = FontFamily(
-    Font(
-        googleFont = GoogleFont("Kalnia Glaze"),
-        fontProvider = provider
-    ))
-*/
 val llistaDeMarkers = mutableListOf<Marker>()
 var mapa = mutableListOf<MapView>()
 
@@ -463,8 +426,8 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
 
             // 2. Desa la URI comprimida a la base de dades:
             if (compressedUri != null) {
-                PuntRepository.updateFotoUri(puntId, compressedUri.toString())
-
+                //PuntRepository.updateFotoUri(puntId, compressedUri.toString())
+                Log.i("Foto", "Foto guardada a la base de dades")
                 // 3. Guarda la imatge a la galeria
                 guardarImatgeAlSistema(context, compressedUri)
 
@@ -912,7 +875,7 @@ fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
 
                 val infoWindow = InfoPuntMarker(mapView, fotoCallback)
                 marker.infoWindow = infoWindow
-                marker.showInfoWindowCentered(mapView)
+                //marker.showInfoWindowCentered(mapView)
 
                 when (punt.ruta) {
                     "1" -> {
@@ -1059,7 +1022,7 @@ fun comprimirImatge(uri: Uri, context: Context): Uri? {
     val outputStream = FileOutputStream(file)
 
     // Comprimir la imatge (el format pot ser JPEG, PNG, etc. i pots especificar la qualitat)
-    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // 80 és la qualitat (1-100)
+    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 40, outputStream) // 80 és la qualitat (1-100)
 
     outputStream.flush()
     outputStream.close()
@@ -1073,16 +1036,35 @@ fun comprimirImatge(uri: Uri, context: Context): Uri? {
 }
 
 fun guardarImatgeAlSistema(context: Context, compressedUri: Uri) {
-    val contentValues = ContentValues().apply {
-        put(MediaStore.Images.Media.DISPLAY_NAME, "foto_${System.currentTimeMillis()}.jpg")
-        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES) // Aquesta línia fa que es guardi a la carpeta "Pictures"
+    // Creem una carpeta personalitzada dins de la carpeta "Pictures"
+    val directoriPersonalitzat = File(
+        context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+        "FotosTempsDeFlors"  // El nom de la teva carpeta personalitzada
+    )
+
+    Log.i("PuntRepository", "Directori personalitzat: ${directoriPersonalitzat.absolutePath}")
+
+    if (!directoriPersonalitzat.exists()) {
+        directoriPersonalitzat.mkdirs()  // Crea la carpeta si no existeix
+        Log.i("PuntRepository", "Carpeta creada")
     }
 
+    // Creem un fitxer a la carpeta personalitzada
+    val fotoFile = File(directoriPersonalitzat, "foto_${System.currentTimeMillis()}.jpg")
+
+    // Afegim els valors necessaris a ContentValues
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, fotoFile.name)
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/FotosTempsDeFlors")  // La ruta serà dins "Pictures/FotosTempsDeFlors"
+    }
+
+    // Obtenim la URI on desarem la imatge
     val resolver = context.contentResolver
     val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
     if (uri != null) {
+        // Obrim un flux per copiar la imatge des de la URI comprimida a la nova URI
         val inputStream = context.contentResolver.openInputStream(compressedUri)
         val outputStream = context.contentResolver.openOutputStream(uri)
 
@@ -1091,8 +1073,13 @@ fun guardarImatgeAlSistema(context: Context, compressedUri: Uri) {
         if (outputStream != null) {
             outputStream.close()
         }
+
+        // Notifiquem a la galeria que s'ha afegit una nova imatge
+        context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri))
+        Log.i("PuntRepository", "foto guardada al sistema")
     }
 }
+
 
 
 fun createNumberedMarkerDrawable(context: Context, number: Int, colorp: Int): Drawable {

@@ -106,6 +106,7 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
                     fotoCallback.ferFoto(it.numero) {uri ->
                         foto.setImageURI(uri)
                         foto.visibility = View.VISIBLE
+                        fotoCallback.onFotoFeta(it.numero, uri)
                         PuntRepository.updateFotoUri(punt.numero, uri.toString())
                     }
                 }

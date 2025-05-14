@@ -3,4 +3,9 @@
     <external-files-path
         name="my_images"
         path="Pictures" />
+
+    <!-- Afegeix això per al directori de cache -->
+    <cache-path
+        name="compressed"
+        path="." />
 </paths>

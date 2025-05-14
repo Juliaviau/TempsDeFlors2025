@@ -70,6 +70,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -101,6 +102,7 @@ import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.compass.CompassOverlay
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
+import org.osmdroid.views.overlay.infowindow.InfoWindow
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.ByteArrayOutputStream
@@ -435,24 +437,35 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
     val uriFoto = remember { mutableStateOf<Uri?>(null) }
     val fotoCallbackRef = remember { mutableStateOf<FotoCallback?>(null) }
     val idpunturi = remember { mutableStateOf<String?>(null) }
+    var pendingFotoCallback by remember { mutableStateOf<((Uri) -> Unit)?>(null) }
+    var pendingPuntId by remember { mutableStateOf<String?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
+        if (success && uriFoto.value != null && pendingPuntId != null) {
             // Foto feta correctament, pots guardar o mostrar la URI
-            uriFoto.value?.let { uri ->
+            /*uriFoto.value?.let { uri ->
                 fotoCallbackRef.value?.onFotoFeta(idpunturi.value!!, uri)  // Si tens l'ID aquí
-            }
+            }*/
+            pendingFotoCallback?.invoke(uriFoto.value!!)
+            pendingFotoCallback = null
+            pendingPuntId = null
             Log.i("Foto", "Foto feta correctament")
         }
     }
 
+
+
+
     val fotoCallback = object : FotoCallback {
-        override fun ferFoto(puntId: String) {
+        override fun ferFoto(puntId: String, onFotoFeta: (Uri) -> Unit) {
             val uri = crearUriDeFoto(context) // Crea la URI
             idpunturi.value = puntId // Guarda l'ID del punt
             uriFoto.value = uri // Guarda la URI
             //fotoUriPerPuntId[puntId] = uri  // Guarda-la
             cameraLauncher.launch(uri)
+            // Guardem el callback temporalment
+            pendingFotoCallback = onFotoFeta
+            pendingPuntId = puntId
         }
 
         override fun onFotoFeta(puntId: String, uri: Uri) {

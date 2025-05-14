@@ -24,16 +24,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private fun Date.formatToCalendarDay(): String = SimpleDateFormat("d", Locale.getDefault()).format(this)
-
-
 class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: FotoCallback) :
     InfoWindow(R.layout.info_punt_marker, mapView) {
     val context = mapView.context
-    //val database = AppDatabase.getInstance(context)
-    //val repositoryEnlaces = database?.puntsDao()?.let { PuntsRepository(it) }
-    //val viewmodel = AppViewModel(repositoryEnlaces!!)
-    //val puntsRepo = PuntsRepository(context)
 
     override fun onClose() {
         // Do something
@@ -64,11 +57,11 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
         titleView.text = marker.title
         descView.text = marker.subDescription
         subDescView.text = marker.snippet
-        visita.text = if (/*punt.visitat.equals("no")*/!visitat) "No visitat" else "Visitat a " + simpleDateFormat.format(
+        visita.text = if (!visitat) "No visitat" else "Visitat a " + simpleDateFormat.format(
             PuntRepository.getDataByNumero(punt.numero)?.toLong() ?:
             System.currentTimeMillis()
         )
-        visitatButton.text = if (/*punt.visitat.equals("no")*/!visitat) "Marcar com a visitat" else "Eliminar de visitats"
+        visitatButton.text = if (!visitat) "Marcar com a visitat" else "Eliminar de visitats"
         ruta.text = "RUTA " + punt.ruta
 
         when (punt.ruta) {
@@ -90,23 +83,32 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
                 }
         }
 
+        // Carrega la imatge si ja existeix
+        punt?.foto?.let { uriString ->
+            foto.visibility = View.VISIBLE
+            foto.setImageURI(Uri.parse(uriString))
+        }
+
+
         if (!visitat) {
             afegirfoto.visibility = View.GONE
             foto.visibility = View.GONE
         } else {
-            afegirfoto.visibility = View.VISIBLE
-            foto.visibility = View.VISIBLE
             Glide.with(context)
                 .load(PuntRepository.getFotoUriByNumero(punt.numero))
                 .into(foto)
-
+            afegirfoto.visibility = View.VISIBLE
+            //foto.visibility = View.VISIBLE
             afegirfoto.setOnClickListener {
-                Log.i("afegirfoto", "afegirfoto")
                 punt?.let {
-                    fotoCallback.ferFoto(it.numero) // o la dada que calgui
+
+                    fotoCallback.ferFoto(it.numero) {uri ->
+                        foto.setImageURI(uri)
+                        foto.visibility = View.VISIBLE
+                        PuntRepository.updateFotoUri(punt.numero, uri.toString())
+                    }
                 }
             }
-
         }
 
         mapView.setOnClickListener {
@@ -115,12 +117,7 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
 
         //nomes guardo els que estan visitats
         visitatButton.setOnClickListener {
-            // Handle visitat button click
-            if (/*punt.visitat.equals("no")*/!visitat) {
-               // punt.visitat = "si"
-                //punt.visitat = "si"
-                //puntsRepo.marcarComVisitat(punt.numero)
-
+            if (!visitat) {
                 CoroutineScope(Dispatchers.IO).launch {
                     PuntRepository.marcaPuntComVisitat(ruta.text.toString(), punt.numero, "si")
                     withContext(Dispatchers.Main) {
@@ -128,17 +125,11 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
                         val color = getColorPerRuta(punt.ruta, visitat = true)
                         marker.icon = createNumberedMarkerDrawable(mapView.context, punt.numero.toInt(), color)
                         mapView.invalidate() // refresca el mapa
-
-                        close() // tanca la finestra
+                        //close() // tanca la finestra cal?
                     }
                 }
 
-                //viewmodel.marcarComVisitat(punt.ruta, punt.numero, "si")
             } else {
-                //punt.visitat = "no"
-                //punt.data = ""
-                //puntsRepo.marcarComNoVisitat(punt.numero)
-                //viewmodel.deletePuntById(punt.numero)
                 CoroutineScope(Dispatchers.IO).launch {
                     PuntRepository.eliminarPunt(punt.numero)
                     withContext(Dispatchers.Main) {
@@ -146,14 +137,14 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
                         val color = getColorPerRuta(punt.ruta, visitat = false)
                         marker.icon = createNumberedMarkerDrawable(mapView.context, punt.numero.toInt(), color)
                         mapView.invalidate() // refresca el mapa
-
-                        close() // tanca la finestra
+                        //close() cal?
                     }
                 }
             }
             mapView.invalidate()
             close()
         }
+
         mView.setOnClickListener{
             close()
         }
@@ -162,8 +153,8 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
         mapView.setOnClickListener { close() }
 
         closeAllInfoWindowsOn(mapView)
-
     }
+
     private fun getColorPerRuta(ruta: String, visitat: Boolean): Int {
         val context = mapView.context
         return when (ruta) {

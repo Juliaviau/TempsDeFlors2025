@@ -35,8 +35,6 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onOpen(item: Any?) {
 
-        val view = mView
-
         val marker = item as Marker
         val punt = marker.relatedObject as? Punts ?: return
 
@@ -68,31 +66,35 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
             "1" -> {
                     ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta1))
                     visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta1))
-                }
+                    afegirfoto.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta1))                }
             "2" -> {
                     ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta2))
                     visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta2))
+                    afegirfoto.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta2))
             }
             "3" -> {
                     ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.ruta3))
                     visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta3))
-                }
+                    afegirfoto.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.ruta3))
+            }
             "ACCESSIBLE" -> {
                     ruta.setTextColor(ContextCompat.getColor(mapView.context, R.color.accessible))
                     visitatButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(mapView.context, R.color.accessible))
                 }
         }
-
-        // Carrega la imatge si ja existeix
-        punt?.foto?.let { uriString ->
+        
+        if (PuntRepository.teFoto(punt.numero)) {
             foto.visibility = View.VISIBLE
-            foto.setImageURI(Uri.parse(uriString))
+            afegirfoto.visibility = View.VISIBLE
+            Glide.with(context).load(PuntRepository.getFotoUriByNumero(punt.numero)).into(foto).clearOnDetach()
+            Log.i("InfoPuntMarker", " num: ${punt.numero}")
+        } else {
+            foto.visibility = View.GONE
         }
 
 
         if (!visitat) {
             afegirfoto.visibility = View.GONE
-            foto.visibility = View.GONE
         } else {
             Glide.with(context)
                 .load(PuntRepository.getFotoUriByNumero(punt.numero))
@@ -101,7 +103,6 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
             //foto.visibility = View.VISIBLE
             afegirfoto.setOnClickListener {
                 punt?.let {
-
                     fotoCallback.ferFoto(it.numero) {uri ->
                         foto.setImageURI(uri)
                         foto.visibility = View.VISIBLE
@@ -145,12 +146,8 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
             close()
         }
 
-        mView.setOnClickListener{
-            close()
-        }
-
-        // Handle map click
-        mapView.setOnClickListener { close() }
+        mView.setOnClickListener{close()}
+        mapView.setOnClickListener {close()}
 
         closeAllInfoWindowsOn(mapView)
     }
@@ -165,10 +162,4 @@ class InfoPuntMarker(private val mapView: MapView,  private val fotoCallback: Fo
             else -> ContextCompat.getColor(context, R.color.white)
         }
     }
-
-    fun actualitzarFoto(uri: Uri) {
-        mView?.findViewById<ImageView>(R.id.imatgepunt)?.setImageURI(uri)
-    }
-
-
 }

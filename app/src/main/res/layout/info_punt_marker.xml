@@ -67,9 +67,10 @@
         <ImageView
             android:id="@+id/imatgepunt"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="150dp"
             android:layout_below="@id/snippet"
-            tools:srcCompat="@drawable/f2514" />
+            tools:srcCompat="@drawable/f2514"
+            android:visibility="gone"/>
 
         <LinearLayout
             android:id="@+id/button_layout"
@@ -92,7 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/baseline_add_a_photo_24"
-                android:backgroundTint="@color/ruta2"
+                android:backgroundTint="@color/ruta1"
                 android:layout_marginLeft="8dp"
                 android:id="@+id/afegirFoto" />
 

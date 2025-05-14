@@ -27,6 +27,11 @@ object PuntRepository {
     }
 
 
+    fun teFoto(numero: String): Boolean {
+        return synchronized(puntsVisitats) {
+            puntsVisitats.any { it.numero == numero && it.fotoUri?.isNotEmpty() ?: false }
+        }
+    }
 
 
     fun getPuntByNumero(numero: String): PuntsEntity? {

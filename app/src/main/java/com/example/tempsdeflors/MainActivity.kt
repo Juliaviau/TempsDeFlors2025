@@ -280,6 +280,23 @@ fun PantallaMapa() {
         }
     }
 }
+/*
+fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: List<Marker>,scope: CoroutineScope) {
+    // Tanca el Drawer
+    scope.launch {
+        drawerState.close()
+    }
+
+    // Cerca el Marker associat
+    val marker = markers.find { it.relatedObject == punt } ?: return
+
+    // Centra el mapa en aquest punt
+    val controller = mapView.controller
+    controller.animateTo(marker.position)
+
+    // Obre el seu InfoWindow
+    marker.showInfoWindow()
+}*/
 
 fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: List<Marker>,scope: CoroutineScope) {
     // Tanca el Drawer
@@ -294,8 +311,8 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
     val controller = mapView.controller
 
 
-    val desplaçament = 0.002  // Ajusta segons el teu zoom
-    val posicioDesplaçada = GeoPoint(marker.position.latitude - desplaçament, marker.position.longitude)
+    val desplaçament = 0.014  // Ajusta segons el teu zoom
+    val posicioDesplaçada = GeoPoint(marker.position.latitude + desplaçament, marker.position.longitude)
 
     // Anima la càmera
     mapView.controller.animateTo(posicioDesplaçada)
@@ -303,20 +320,20 @@ fun onPuntClick(punt: Punts,mapView: MapView,drawerState: DrawerState,markers: L
     // Mostra l'InfoWindow després d’un petit delay per assegurar el moviment
     Handler(Looper.getMainLooper()).postDelayed({
         marker.showInfoWindow()
-    }, 300)
+    }, 30)
 
     //controller.animateTo(marker.position)
 
     // Obre el seu InfoWindow
-    marker.showInfoWindow()
+    //marker.showInfoWindow()
 }
 
-fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.002) {
-    val target = GeoPoint(position.latitude - offset, position.longitude)
+fun Marker.showInfoWindowCentered(mapView: MapView, offset: Double = 0.014) {
+    val target = GeoPoint(position.latitude + offset, position.longitude)
     mapView.controller.animateTo(target)
     Handler(Looper.getMainLooper()).postDelayed({
         this.showInfoWindow()
-    }, 300)
+    }, 30)
 }
 
 
@@ -375,9 +392,9 @@ fun TimelineItem( punt: Punts, nextPunt: Punts?, isFirst: Boolean, isLast: Boole
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
                 .clickable {
-                    scope.launch {
+                    /*scope.launch {
                         drawerState.close()
-                    }
+                    }*/
                     onPuntClick(
                         punt = punt,
                         mapView = mapa.get(0),
@@ -434,7 +451,7 @@ fun crearUriDeFoto(context: Context): Uri {
 
 
 @Composable
-fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: CoroutineScope) {
+fun OsmMapView(drawerState: DrawerState,scope: CoroutineScope) {
     val context = LocalContext.current
 
     val uriFoto = remember { mutableStateOf<Uri?>(null) }
@@ -445,19 +462,12 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && uriFoto.value != null && pendingPuntId != null) {
-            // Foto feta correctament, pots guardar o mostrar la URI
-            /*uriFoto.value?.let { uri ->
-                fotoCallbackRef.value?.onFotoFeta(idpunturi.value!!, uri)  // Si tens l'ID aquí
-            }*/
             pendingFotoCallback?.invoke(uriFoto.value!!)
             pendingFotoCallback = null
             pendingPuntId = null
             Log.i("Foto", "Foto feta correctament")
         }
     }
-
-
-
 
     val fotoCallback = object : FotoCallback {
         override fun ferFoto(puntId: String, onFotoFeta: (Uri) -> Unit) {
@@ -920,15 +930,15 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
 
                 when (punt.ruta) {
                     "1" -> {
-                        color = if (/*punt.visitat.equals("no")*/!visitat/*puntsVisitats.contains(punt.numero)*/)
+                        color = if (!visitat)
                         ContextCompat.getColor(mapView.context, R.color.ruta1) else ContextCompat.getColor(mapView.context, R.color.ruta1clar)
                     }
                     "2" -> {
-                        color = if (/*punt.visitat.equals("no")*/!visitat/*puntsVisitats.contains(punt.numero)*/)
+                        color = if (!visitat)
                             ContextCompat.getColor(mapView.context, R.color.ruta2) else ContextCompat.getColor(mapView.context, R.color.ruta2clar)
                     }
                     "3" -> {
-                        color = if (/*punt.visitat.equals("no")*/!visitat/*puntsVisitats.contains(punt.numero)*/)
+                        color = if (!visitat)
                             ContextCompat.getColor(mapView.context, R.color.ruta3) else ContextCompat.getColor(mapView.context, R.color.ruta3clar)
                     }
                     "ACCESSIBLE" -> {
@@ -953,12 +963,12 @@ fun OsmMapView(/*puntsVisitats: Set<String>*/drawerState: DrawerState,scope: Cor
             }
             mapView.overlays.add(compassOverlay)
 
-            mapView.setOnTouchListener{ _, _ ->
+            /*mapView.setOnTouchListener{ _, _ ->
                 scope.launch {
                     drawerState.close()
                 }
                 false
-            }
+            }*/
 
             mapView//aixo sempre al final
         },
